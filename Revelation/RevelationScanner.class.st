@@ -2,12 +2,12 @@ Class {
 	#name : 'RevelationScanner',
 	#superclass : 'SpPresenter',
 	#instVars : [
-		'buttonHappy',
-		'buttonNeutral',
-		'buttonBad',
 		'result',
 		'sectors',
-		'sectorList'
+		'sectorList',
+		'systems',
+		'systemList',
+		'selectedSector'
 	],
 	#category : 'Revelation',
 	#package : 'Revelation'
@@ -17,11 +17,8 @@ Class {
 RevelationScanner >> connectPresenters [
 
 	sectorList whenSelectionChangedDo: [ :selectedItemMode |
-		| i sector |
-		selectedItemMode inspect.
-		i := selectedItemMode selectedIndex.
-		sector := sectors at: i.
-		sector inspect ]
+		selectedSector := sectors at: selectedItemMode selectedIndex.
+		self fetchSystems ]
 ]
 
 { #category : 'layout' }
@@ -29,10 +26,8 @@ RevelationScanner >> defaultLayout [
 
 	^ SpBoxLayout newTopToBottom
 		  add: (SpBoxLayout newLeftToRight
-				   add: buttonHappy;
-				   add: buttonNeutral;
-				   add: buttonBad;
 				   add: sectorList;
+				   add: systemList;
 				   yourself);
 		  add: result;
 		  yourself
@@ -51,48 +46,76 @@ RevelationScanner >> fetchSectors [
 ]
 
 { #category : 'initialization' }
+RevelationScanner >> fetchSystems [
+
+	| url jsonResponse s |
+	url := ZnUrl fromString:
+		       'http://radiofreewaba.net/deepnight/data/stars'.
+	url queryAt: #sx add: (selectedSector at: #x).
+	url queryAt: #sy add: (selectedSector at: #y).
+
+	jsonResponse := ZnClient new
+		                queryAt: #sx add: (selectedSector at: #x);
+		                queryAt: #sy add: (selectedSector at: #y);
+		                get: url.
+	s := STON fromString: jsonResponse contents.
+	systems := (s collect: [ :sector | sector ]) sorted: [ :a :b |
+		| ax ay bx by |
+		ax := a at: 'x'.
+		bx := b at: 'x'.
+			ay := a at: 'y'.
+		by := b at: 'y'.
+		(ax = bx)
+			           ifTrue: [ ay < by ]
+			           ifFalse: [ ax < bx ] ].
+
+	self updateSystemList
+]
+
+{ #category : 'initialization' }
 RevelationScanner >> initialize [
 
 	self fetchSectors.
-	super initialize
+	super initialize.
+	selectedSector := nil.
 ]
 
 { #category : 'initialization' }
 RevelationScanner >> initializePresenters [
 | sectorNames |
 	result := self newLabel.
-	buttonHappy := self newButton.
-	buttonNeutral := self newButton.
-	buttonBad := self newButton.
 
 	sectorList := self newList.
 	sectorNames := sectors collect: [ :sector | sector at: 'name' ].
-	
 	sectorList items: sectorNames.
+
+	systemList := self newList.
+	systemList items: #().
 
 	result label: 'Please give us your feedback'.
 
-	buttonHappy
-		label: 'Happy';
-		icon: (self iconNamed: #thumbsUp).
 
-	buttonNeutral
-		label: 'Neutral';
-		icon: (self iconNamed: #user).
-
-	buttonBad
-		label: 'Bad';
-		icon: (self iconNamed: #thumbsDown).
-
-	buttonHappy action: [ result label: buttonHappy label ].
-	buttonNeutral action: [ result label: buttonNeutral label ].
-	buttonBad action: [ result label: buttonBad label ]
 ]
 
 { #category : 'initialization' }
 RevelationScanner >> initializeWindow: aWindowPresenter [
   super initializeWindow: aWindowPresenter .
   aWindowPresenter title: 'Revelation Scanner';
-initialExtent: 400@100.
+initialExtent: 400@300.
 
+]
+
+{ #category : 'as yet unclassified' }
+RevelationScanner >> updateSystemList [
+
+	| hexNumber |
+	hexNumber := [ :number |
+	             number < 10
+		             ifTrue: [ '0' , number asString ]
+		             ifFalse: [ number asString ] ].
+	
+	systemList items: (systems collect: [ :system |
+			 (hexNumber
+				 value: (system at: #x)) , (hexNumber
+				 value: (system at: #y)) ])
 ]
