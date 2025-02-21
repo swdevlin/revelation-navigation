@@ -1,8 +1,11 @@
+"
+System information for a Deepnight Revelation campaign.
+"
 Class {
 	#name : 'RevelationScanner',
 	#superclass : 'SpPresenter',
 	#instVars : [
-		'result',
+		'detail',
 		'sectors',
 		'sectorList',
 		'systems',
@@ -17,8 +20,17 @@ Class {
 RevelationScanner >> connectPresenters [
 
 	sectorList whenSelectionChangedDo: [ :selectedItemMode |
-		selectedSector := sectors at: selectedItemMode selectedIndex.
-		self fetchSystems ]
+		| i |
+		i := selectedItemMode selectedIndex.
+		i > 0 ifTrue: [
+			selectedSector := sectors at: i.
+			self fetchSystems ] ].
+
+	systemList whenSelectionChangedDo: [ :selectedItem |
+		0 < selectedItem selectedIndex
+			ifFalse: [ detail clearSystem ]
+			ifTrue: [
+			detail setSystem: (systems at: selectedItem selectedIndex) ] ]
 ]
 
 { #category : 'layout' }
@@ -29,20 +41,26 @@ RevelationScanner >> defaultLayout [
 				   add: sectorList;
 				   add: systemList;
 				   yourself);
-		  add: result;
+		  add: detail height: 210;
 		  yourself
 ]
 
 { #category : 'initialization' }
 RevelationScanner >> fetchSectors [
 
-	| url jsonResponse s |
-	url := 'http://radiofreewaba.net/deepnight/data/sectors'.
-	jsonResponse := ZnClient new get: url.
-	s := STON fromString: jsonResponse contents.
-	sectors := (s collect: [ :sector | sector ]) sorted: [ :a :b |
-		           (a at: 'name') asUppercase < (b at: 'name') asUppercase ]
-	
+	| sectorNames fetcher url jsonResponse s |
+	fetcher := [
+	           url := 'http://radiofreewaba.net/deepnight/data/sectors'.
+	           jsonResponse := ZnClient new get: url.
+	           s := STON fromString: jsonResponse contents.
+	           sectors := (s collect: [ :sector | sector ]) sorted: [ :a :b |
+		                      (a at: 'name') asUppercase
+		                      < (b at: 'name') asUppercase ].
+	           sectorNames := sectors collect: [ :sector |
+		                          sector at: 'name' ].
+	           sectorList items: sectorNames ].
+
+	fetcher fork
 ]
 
 { #category : 'initialization' }
@@ -50,7 +68,7 @@ RevelationScanner >> fetchSystems [
 
 	| url jsonResponse s |
 	url := ZnUrl fromString:
-		       'http://radiofreewaba.net/deepnight/data/stars'.
+		       'https://radiofreewaba.net/deepnight/data/stars'.
 	url queryAt: #sx add: (selectedSector at: #x).
 	url queryAt: #sy add: (selectedSector at: #y).
 
@@ -60,12 +78,12 @@ RevelationScanner >> fetchSystems [
 		                get: url.
 	s := STON fromString: jsonResponse contents.
 	systems := (s collect: [ :sector | sector ]) sorted: [ :a :b |
-		| ax ay bx by |
-		ax := a at: 'x'.
-		bx := b at: 'x'.
-			ay := a at: 'y'.
-		by := b at: 'y'.
-		(ax = bx)
+		           | ax ay bx by |
+		           ax := a at: 'x'.
+		           bx := b at: 'x'.
+		           ay := a at: 'y'.
+		           by := b at: 'y'.
+		           ax = bx
 			           ifTrue: [ ay < by ]
 			           ifFalse: [ ax < bx ] ].
 
@@ -74,17 +92,15 @@ RevelationScanner >> fetchSystems [
 
 { #category : 'initialization' }
 RevelationScanner >> initialize [
-
+   sectors := OrderedCollection new.
 	self fetchSectors.
 	super initialize.
-	selectedSector := nil.
+
 ]
 
 { #category : 'initialization' }
 RevelationScanner >> initializePresenters [
 | sectorNames |
-	result := self newLabel.
-
 	sectorList := self newList.
 	sectorNames := sectors collect: [ :sector | sector at: 'name' ].
 	sectorList items: sectorNames.
@@ -92,17 +108,19 @@ RevelationScanner >> initializePresenters [
 	systemList := self newList.
 	systemList items: #().
 
-	result label: 'Please give us your feedback'.
+	detail := self instantiate: SystemPresenter.
 
 
 ]
 
 { #category : 'initialization' }
 RevelationScanner >> initializeWindow: aWindowPresenter [
-  super initializeWindow: aWindowPresenter .
-  aWindowPresenter title: 'Revelation Scanner';
-initialExtent: 400@300.
 
+	super initializeWindow: aWindowPresenter.
+	aWindowPresenter
+		title: 'Revelation Scanner';
+		initialExtent: 400 @ 500;
+		initialPosition: 1240 @ 30
 ]
 
 { #category : 'as yet unclassified' }
