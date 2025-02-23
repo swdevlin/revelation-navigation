@@ -10,7 +10,8 @@ Class {
 		'sectorInput',
 		'sectors',
 		'selectedSector',
-		'hexAddressInput'
+		'hexAddressInput',
+		'revelationClient'
 	],
 	#category : 'Revelation',
 	#package : 'Revelation'
@@ -58,14 +59,10 @@ RouteEntryPresenter >> defaultLayout [
 { #category : 'initialization' }
 RouteEntryPresenter >> fetchSectors [
 
-	| sectorNames fetcher url jsonResponse s |
+	| sectorNames fetcher |
 	fetcher := [
-	           url := 'http://radiofreewaba.net/deepnight/data/sectors'.
-	           jsonResponse := ZnClient new get: url.
-	           s := STON fromString: jsonResponse contents.
-	           sectors := (s collect: [ :sector | sector ]) sorted: [ :a :b |
-		                      (a at: 'name') asUppercase
-		                      < (b at: 'name') asUppercase ].
+	           sectors := revelationClient sectors.
+
 	           sectorNames := sectors collect: [ :sector |
 		                          sector at: 'name' ].
 	           sectorInput items: sectorNames ].
@@ -94,6 +91,7 @@ RouteEntryPresenter >> hexY [
 { #category : 'initialization' }
 RouteEntryPresenter >> initialize [
 
+	revelationClient := RevelationClient new.
 	sectors := OrderedCollection new.
 	self fetchSectors.
 	super initialize
