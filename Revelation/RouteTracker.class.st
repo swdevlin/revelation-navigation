@@ -9,7 +9,8 @@ Class {
 		'systemList',
 		'yearInput',
 		'dayInput',
-		'route'
+		'route',
+		'revelationClient'
 	],
 	#category : 'Revelation',
 	#package : 'Revelation'
@@ -89,6 +90,7 @@ RouteTracker >> fetchRoute [
 { #category : 'initialization' }
 RouteTracker >> initialize [
    route := OrderedCollection new.
+   revelationClient := RevelationClient new.
 	self fetchRoute.
 	super initialize.
 

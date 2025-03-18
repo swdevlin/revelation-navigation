@@ -10,7 +10,8 @@ Class {
 		'sectorList',
 		'systems',
 		'systemList',
-		'selectedSector'
+		'selectedSector',
+		'revelationClient'
 	],
 	#category : 'Revelation',
 	#package : 'Revelation'
@@ -48,14 +49,9 @@ RevelationScanner >> defaultLayout [
 { #category : 'initialization' }
 RevelationScanner >> fetchSectors [
 
-	| sectorNames fetcher url jsonResponse s |
+	| sectorNames fetcher |
 	fetcher := [
-	           url := 'http://radiofreewaba.net/deepnight/data/sectors'.
-	           jsonResponse := ZnClient new get: url.
-	           s := STON fromString: jsonResponse contents.
-	           sectors := (s collect: [ :sector | sector ]) sorted: [ :a :b |
-		                      (a at: 'name') asUppercase
-		                      < (b at: 'name') asUppercase ].
+	           sectors := revelationClient sectors.
 	           sectorNames := sectors collect: [ :sector |
 		                          sector at: 'name' ].
 	           sectorList items: sectorNames ].
@@ -92,10 +88,11 @@ RevelationScanner >> fetchSystems [
 
 { #category : 'initialization' }
 RevelationScanner >> initialize [
-   sectors := OrderedCollection new.
-	self fetchSectors.
-	super initialize.
 
+	revelationClient := RevelationClient new.
+	sectors := OrderedCollection new.
+	self fetchSectors.
+	super initialize
 ]
 
 { #category : 'initialization' }
