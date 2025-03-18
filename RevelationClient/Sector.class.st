@@ -11,8 +11,8 @@ Class {
 		'name',
 		'abbreviation'
 	],
-	#category : 'Revelation',
-	#package : 'Revelation'
+	#category : 'RevelationClient',
+	#package : 'RevelationClient'
 }
 
 { #category : 'instance creation' }

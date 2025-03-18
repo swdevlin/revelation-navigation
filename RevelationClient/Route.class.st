@@ -14,8 +14,8 @@ Class {
 		'hexY',
 		'solarSystemName'
 	],
-	#category : 'Revelation',
-	#package : 'Revelation'
+	#category : 'RevelationClient',
+	#package : 'RevelationClient'
 }
 
 { #category : 'instance creation' }

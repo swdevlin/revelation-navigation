@@ -8,8 +8,8 @@ Class {
 		'baseURL',
 		'cachedSectors'
 	],
-	#category : 'Revelation',
-	#package : 'Revelation'
+	#category : 'RevelationClient',
+	#package : 'RevelationClient'
 }
 
 { #category : 'initialization' }
