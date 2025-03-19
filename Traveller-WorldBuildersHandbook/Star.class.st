@@ -10,7 +10,8 @@ Class {
 		'subtype',
 		'age',
 		'colour',
-		'companion'
+		'companion',
+		'luminosity'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -68,6 +69,8 @@ Star class >> generateNew [
 		stellarType: type;
 		mass: (catalog massForType: type subtype: subtype class: class);
 		temperature: (catalog temperatureForType: type subtype: subtype);
+		luminosity: (catalog luminosityForType: type subtype: subtype class: class);
+		diameter: (catalog diameterForType: type subtype: subtype class: class);
 		colour: (catalog colourForType: type) .
 
 	^ star
@@ -107,6 +110,12 @@ Star >> companion [
 Star >> companion: anObject [
 
 	companion := anObject
+]
+
+{ #category : 'accessing' }
+Star >> luminosity [
+
+	^ diameter squared * ((temperature / 5772) squared)
 ]
 
 { #category : 'accessing' }

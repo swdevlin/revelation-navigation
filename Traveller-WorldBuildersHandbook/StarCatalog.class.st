@@ -11,7 +11,9 @@ Class {
 		'typeOrder',
 		'classOrder',
 		'colours',
-		'temperatures'
+		'temperatures',
+		'diameters',
+		'luminosity'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -22,6 +24,16 @@ StarCatalog >> colourForType: type [
 
 	^ colours at: type
 
+]
+
+{ #category : 'as yet unclassified' }
+StarCatalog >> diameterForType: type subtype: subtype class: class [
+
+	^ self
+		  interpolatedLookup: diameters 
+		  type: type
+		  subtype: subtype
+		  class: class
 ]
 
 { #category : 'initialization' }
@@ -35,7 +47,7 @@ StarCatalog >> initialize [
 			           ('G' -> 'Yellow').
 			           ('K' -> 'Light Orange').
 			           ('M' -> 'Orange Red') }.
-			
+
 	classOrder := #( 'Ia' 'Ib' 'II' 'III' 'IV' 'V' 'VI' ).
 
 	typeOrder := #( 'O' 'B' 'A' 'F' 'G' 'K' 'M' ).
@@ -54,27 +66,77 @@ StarCatalog >> initialize [
 	               #( 30 25 18 8 nil 0.08 0.075 ) ).
 
 	temperatures := #( 50000 40000 30000 15000 10000 8000 7500 6500 6000
-	                   5600 5200 4400 3700 3000 2400 )
+	                   5600 5200 4400 3700 3000 2400 ).
+
+	diameters := #( #( 25 24 22 21 nil 20 0.18 )
+	                #( 22 20 18 15 nil 12 0.18 )
+	                #( 20 14 12 10 8 7 0.2 ) #( 60 25 14 6 5 3.5 0.5 )
+	                #( 120 50 30 5 4 2.2 nil ) #( 180 75 45 5 3 2 nil )
+	                #( 210 85 50 5 3 1.7 nil ) #( 280 115 66 5 2 1.5 nil )
+	                #( 330 135 77 10 3 1.1 0.8 )
+	                #( 360 150 90 15 4 0.95 0.7 )
+	                #( 420 180 110 20 6 0.9 0.6 )
+	                #( 600 260 160 40 nil 0.8 0.5 )
+	                #( 900 380 230 60 nil 0.7 0.4 )
+	                #( 1200 600 350 100 nil 0.2 0.1 )
+	                #( 1800 800 500 200 nil 0.1 0.08 ) ).
+
+	luminosity := #( #( 3400000 3200000 2700000 2400000 nil 2200000
+	                    180 )
+	                 #( 1100000 900000 730000 510000 nil 330000 73 )
+	                 #( 290000 140000 100000 72000 46000 35000 29 )
+	                 #( 160000 28000 8800 1600 1100 550 11 )
+	                 #( 130000 22000 8000 220 140 43 nil )
+	                 #( 120000 20000 7300 90 33 15 nil )
+	                 #( 120000 20000 7000 70 25 8.1 nil )
+	                 #( 120000 20000 6900 39 6 3.5 nil )
+	                 #( 120000 20000 6800 120 10 1.4 0.73 )
+	                 #( 110000 20000 7000 200 14 0.78 0.43 )
+	                 #( 110000 21000 7800 260 23 0.52 0.23 )
+	                 #( 120000 22000 8400 530 nil 0.21 0.083 )
+	                 #( 130000 24000 8800 600 nil 0.082 0.027 )
+	                 #( 100000 26000 8800 720 nil 0.0029 0.00072 )
+	                 #( 90000 19000 7300 1200 nil 0.00029 0.00019 ) )
+]
+
+{ #category : 'as yet unclassified' }
+StarCatalog >> interpolatedLookup: table type: type subtype: subtype class: class [
+
+	| typeIndex classIndex lowerBound upperBound lowerData upperData lowerValue upperValue factor |
+	typeIndex := typeOrder indexOf: type.
+	lowerBound := typeIndex * 2 + (subtype >= 5 ifTrue: [ 0 ] ifFalse: [ -1 ]).
+	upperBound := lowerBound + 1.
+
+	lowerData := table at: lowerBound.
+	upperData := table at: upperBound.
+
+	classIndex := classOrder indexOf: class.
+	lowerValue := lowerData at: classIndex.
+	upperValue := upperData at: classIndex.
+
+	factor := subtype < 5 ifTrue: [ subtype / 5.0 ] ifFalse: [(subtype -5)/5.0].
+	
+	^ lowerValue + (factor * (upperValue - lowerValue))
+]
+
+{ #category : 'as yet unclassified' }
+StarCatalog >> luminosityForType: type subtype: subtype class: class [
+
+	^ self
+		  interpolatedLookup: luminosity 
+		  type: type
+		  subtype: subtype
+		  class: class
 ]
 
 { #category : 'as yet unclassified' }
 StarCatalog >> massForType: type subtype: subtype class: class [
 
-	| typeIndex classIndex lowerBound upperBound lowerData upperData lowerMass upperMass factor |
-	typeIndex := typeOrder indexOf: type.
-	lowerBound := typeIndex * 2 + (subtype >= 5 ifTrue: [ 0 ] ifFalse: [ -1 ]).
-	upperBound := lowerBound + 1.
-
-	lowerData := massData at: lowerBound.
-	upperData := massData at: upperBound.
-
-	classIndex := classOrder indexOf: class.
-	lowerMass := lowerData at: classIndex.
-	upperMass := upperData at: classIndex.
-
-	factor := subtype < 5 ifTrue: [ subtype / 5.0 ] ifFalse: [(subtype -5)/5.0].
-	
-	^ lowerMass + (factor * (upperMass - lowerMass))
+	^ self
+		  interpolatedLookup: massData
+		  type: type
+		  subtype: subtype
+		  class: class
 ]
 
 { #category : 'as yet unclassified' }
