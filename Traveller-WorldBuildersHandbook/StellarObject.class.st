@@ -13,6 +13,7 @@ Class {
 		'diameter',
 		'name',
 		'period',
+		'temperature',
 		'mass'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
@@ -125,4 +126,16 @@ StellarObject >> period [
 StellarObject >> period: anObject [
 
 	period := anObject
+]
+
+{ #category : 'accessing' }
+StellarObject >> temperature [
+
+	^ temperature
+]
+
+{ #category : 'accessing' }
+StellarObject >> temperature: anObject [
+
+	temperature := anObject
 ]

@@ -19,7 +19,7 @@ Class {
 { #category : 'as yet unclassified' }
 Star class >> generateNew [
 
-	| starTypeTable star type class subtype hotStarTable nonSpecialStarType |
+	| starTypeTable star type class subtype hotStarTable nonSpecialStarType catalog |
 	starTypeTable := RollTable starType.
 	hotStarTable := RollTable hotStarType.
 
@@ -36,10 +36,6 @@ Star class >> generateNew [
 	class := 'V'.
 
 	type := starTypeTable roll.
-	Transcript
-		show: type;
-		show: (starTypeTable lastRoll);
-		cr.
 	type == #Hot ifTrue: [ type := RollTable hotStarType roll ].
 
 	type == #Special ifTrue: [
@@ -64,11 +60,15 @@ Star class >> generateNew [
 		           rollForStellarClass: class
 		           stellarType: type.
 
+	catalog := StarCatalog new.
 	star := self new.
 	star
 		stellarClass: class;
 		subtype: subtype;
-		stellarType: type.
+		stellarType: type;
+		mass: (catalog massForType: type subtype: subtype class: class);
+		temperature: (catalog temperatureForType: type subtype: subtype);
+		colour: (catalog colourForType: type) .
 
 	^ star
 ]
