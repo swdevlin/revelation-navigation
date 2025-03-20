@@ -9,7 +9,8 @@ Class {
 		'stellarType',
 		'subtype',
 		'colour',
-		'companion'
+		'companion',
+		'age'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -73,33 +74,52 @@ Star class >> generateNew [
 	^ star
 ]
 
+{ #category : 'as yet unclassified' }
+Star class >> generateNewType: type subtype: subtype class: class [
+
+	| star catalog |
+
+	catalog := StarCatalog new.
+	star := self new.
+	star
+		stellarClass: class;
+		subtype: subtype;
+		stellarType: type;
+		mass: (catalog massForType: type subtype: subtype class: class);
+		temperature: (catalog temperatureForType: type subtype: subtype);
+		diameter: (catalog diameterForType: type subtype: subtype class: class);
+		colour: (catalog colourForType: type) .
+
+	^ star
+]
+
 { #category : 'accessing' }
 Star >> age [
 
-	| msl dice age subGiantLifespan giantLifespan |
-	dice := DieRoller new.
+	age ifNil: [
+		| msl dice subGiantLifespan giantLifespan |
+		dice := DieRoller roller.
 
-	msl := 10 / (mass raisedTo: 2.5).
+		msl := 10 / (mass raisedTo: 2.5).
 
-	(#( 'Ia' 'Ib' 'II' 'V' 'VI') includes: stellarClass )
-		ifTrue: [
-			age := mass > 0.9
-				       ifTrue: [ msl * (dice roll: 1 d: 100) / 100.0 ]
-				       ifFalse: [
-					       (dice roll: 1 d: 6) * 2 + ((dice roll: 1 d: 3) - 2)
-					       + ((dice roll: 1 d: 10) / 10.0) ].
+		(#( 'Ia' 'Ib' 'II' 'V' 'VI' ) includes: stellarClass)
+			ifTrue: [
+				age := mass > 0.9
+					       ifTrue: [ msl * (dice roll: 1 d: 100) / 100.0 ]
+					       ifFalse: [
+						       (dice roll: 1 d: 6) * 2 + ((dice roll: 1 d: 3) - 2)
+						       + ((dice roll: 1 d: 10) / 10.0) ].
 
-			mass < 4.7 ifTrue: [ age := 0.01 max: age ] ]
-		ifFalse: [
-			subGiantLifespan := msl / (4 + mass).
-			stellarClass = 'IV'
-				ifTrue: [
-				age := msl + (subGiantLifespan * (dice roll: 1 d: 100) / 100.0) ]
-				ifFalse: [
-					giantLifespan := msl / (10 * (mass raisedTo: 3)).
-					age := msl + subGiantLifespan
-					       + (giantLifespan * (dice roll: 1 d: 100) / 100.0) ] ].
-
+				mass < 4.7 ifTrue: [ age := 0.01 max: age ] ]
+			ifFalse: [
+				subGiantLifespan := msl / (4 + mass).
+				stellarClass = 'IV'
+					ifTrue: [
+					age := msl + (subGiantLifespan * (dice roll: 1 d: 100) / 100.0) ]
+					ifFalse: [
+						giantLifespan := msl / (10 * (mass raisedTo: 3)).
+						age := msl + subGiantLifespan
+						       + (giantLifespan * (dice roll: 1 d: 100) / 100.0) ] ] ].
 	^ age
 ]
 
