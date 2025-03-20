@@ -18,6 +18,9 @@ Primary message are
 Class {
 	#name : 'DieRoller',
 	#superclass : 'Object',
+	#instVars : [
+		'cache'
+	],
 	#classVars : [
 		'rng'
 	],
@@ -35,10 +38,31 @@ DieRoller class >> roller [
 	^ roller
 ]
 
+{ #category : 'as yet unclassified' }
+DieRoller >> cacheD: die value: value [
+
+	(cache at: die ifAbsentPut: [ OrderedCollection new ]) add: value
+]
+
 { #category : 'initialization' }
 DieRoller >> initialize [
 
 	rng := Random new.
+	cache := Dictionary new.
+]
+
+{ #category : 'as yet unclassified' }
+DieRoller >> randomInt: die [
+
+	| cached |
+	cache
+		at: die
+		ifPresent: [
+			cached := cache at: die.
+			cached isEmpty
+				ifTrue: [ ^ rng nextInteger: die ]
+				ifFalse: [ ^ cached removeAt: 1 ] ]
+		ifAbsent: [ ^ rng nextInteger: die ]
 ]
 
 { #category : 'as yet unclassified' }
@@ -47,7 +71,7 @@ DieRoller >> roll: count d: sides [
 
 	^ (1 to: count)
 		  inject: 0
-		  into: [ :total :each | total + (rng nextInteger: sides) ]
+		  into: [ :total :each | total + (self randomInt: sides) ]
 ]
 
 { #category : 'as yet unclassified' }
@@ -56,7 +80,7 @@ DieRoller >> roll: diceCount d: sides k: toKeep [
 
 	| rolls |
 	rolls := (1 to: diceCount) collect: [ :each |
-		         rng nextInteger: sides].
+		         self randomInt: sides].
 	^ (rolls sorted reverse first: toKeep) sum
 ]
 
@@ -66,7 +90,7 @@ DieRoller >> roll: diceCount d: sides keep: toKeep [
 
 	| rolls |
 	rolls := (1 to: diceCount) collect: [ :each |
-		         rng nextInteger: sides ].
+		         self randomInt: sides ].
 	^ (rolls sorted reverse first: toKeep) sum
 ]
 
@@ -76,6 +100,6 @@ DieRoller >> roll: diceCount d: sides lower: toKeep [
 
 	| rolls |
 	rolls := (1 to: diceCount) collect: [ :each |
-		         rng nextInteger: sides ].
+		         self randomInt: sides ].
 	^ (rolls sorted first: toKeep) sum
 ]
