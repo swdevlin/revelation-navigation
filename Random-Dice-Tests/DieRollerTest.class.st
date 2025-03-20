@@ -6,14 +6,16 @@ Class {
 }
 
 { #category : 'tests' }
-DieRollerTest >> testPullFromCache [
+DieRollerTest >> testPullFromQueue [
 
 	| roller r |
-	roller := DieRoller new.
-	roller cacheD: 6 value: 1.
-	roller cacheD: 6 value: 5.
+	roller := DieRoller roller.
+	roller queueD: 6 value: -1.
+	roller queueD: 6 value: -5.
 	r := roller randomInt: 6.
-	self assert: r equals: 1.
+	self assert: r equals: -1.
 	r := roller randomInt: 6.
-	self assert: r equals: 5
+	self assert: r equals: -5.
+	r := roller randomInt: 6.
+	self assert: (r between: 1 and: 6).
 ]

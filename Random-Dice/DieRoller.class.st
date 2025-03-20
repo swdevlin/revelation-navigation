@@ -19,7 +19,7 @@ Class {
 	#name : 'DieRoller',
 	#superclass : 'Object',
 	#instVars : [
-		'cache'
+		'queue'
 	],
 	#classVars : [
 		'rng'
@@ -38,30 +38,30 @@ DieRoller class >> roller [
 	^ roller
 ]
 
-{ #category : 'as yet unclassified' }
-DieRoller >> cacheD: die value: value [
-
-	(cache at: die ifAbsentPut: [ OrderedCollection new ]) add: value
-]
-
 { #category : 'initialization' }
 DieRoller >> initialize [
 
 	rng := Random new.
-	cache := Dictionary new.
+	queue := Dictionary new.
+]
+
+{ #category : 'as yet unclassified' }
+DieRoller >> queueD: die value: value [
+
+	(queue at: die ifAbsentPut: [ OrderedCollection new ]) add: value
 ]
 
 { #category : 'as yet unclassified' }
 DieRoller >> randomInt: die [
 
-	| cached |
-	cache
+	| dQueue |
+	queue
 		at: die
 		ifPresent: [
-			cached := cache at: die.
-			cached isEmpty
+			dQueue := queue at: die.
+			dQueue isEmpty
 				ifTrue: [ ^ rng nextInteger: die ]
-				ifFalse: [ ^ cached removeAt: 1 ] ]
+				ifFalse: [ ^ dQueue removeAt: 1 ] ]
 		ifAbsent: [ ^ rng nextInteger: die ]
 ]
 
