@@ -1,3 +1,6 @@
+"
+Solar system has a primary star.
+"
 Class {
 	#name : 'SolarSystem',
 	#superclass : 'Object',
