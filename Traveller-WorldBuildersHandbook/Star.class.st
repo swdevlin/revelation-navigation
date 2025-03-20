@@ -8,10 +8,8 @@ Class {
 		'stellarClass',
 		'stellarType',
 		'subtype',
-		'age',
 		'colour',
-		'companion',
-		'luminosity'
+		'companion'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -69,7 +67,6 @@ Star class >> generateNew [
 		stellarType: type;
 		mass: (catalog massForType: type subtype: subtype class: class);
 		temperature: (catalog temperatureForType: type subtype: subtype);
-		luminosity: (catalog luminosityForType: type subtype: subtype class: class);
 		diameter: (catalog diameterForType: type subtype: subtype class: class);
 		colour: (catalog colourForType: type) .
 
@@ -79,13 +76,31 @@ Star class >> generateNew [
 { #category : 'accessing' }
 Star >> age [
 
+	| msl dice age subGiantLifespan giantLifespan |
+	dice := DieRoller new.
+
+	msl := 10 / (mass raisedTo: 2.5).
+
+	(#( 'Ia' 'Ib' 'II' 'V' 'VI') includes: stellarClass )
+		ifTrue: [
+			age := mass > 0.9
+				       ifTrue: [ msl * (dice roll: 1 d: 100) / 100.0 ]
+				       ifFalse: [
+					       (dice roll: 1 d: 6) * 2 + ((dice roll: 1 d: 3) - 2)
+					       + ((dice roll: 1 d: 10) / 10.0) ].
+
+			mass < 4.7 ifTrue: [ age := 0.01 max: age ] ]
+		ifFalse: [
+			subGiantLifespan := msl / (4 + mass).
+			stellarClass = 'IV'
+				ifTrue: [
+				age := msl + (subGiantLifespan * (dice roll: 1 d: 100) / 100.0) ]
+				ifFalse: [
+					giantLifespan := msl / (10 * (mass raisedTo: 3)).
+					age := msl + subGiantLifespan
+					       + (giantLifespan * (dice roll: 1 d: 100) / 100.0) ] ].
+
 	^ age
-]
-
-{ #category : 'accessing' }
-Star >> age: anObject [
-
-	age := anObject
 ]
 
 { #category : 'accessing' }
