@@ -38,11 +38,23 @@ DieRoller class >> roller [
 	^ roller
 ]
 
+{ #category : 'as yet unclassified' }
+DieRoller >> clearQueue [
+  queue := Dictionary new
+
+]
+
 { #category : 'initialization' }
 DieRoller >> initialize [
 
 	rng := Random new.
 	queue := Dictionary new.
+]
+
+{ #category : 'accessing' }
+DieRoller >> queue [
+
+	^ queue
 ]
 
 { #category : 'as yet unclassified' }
