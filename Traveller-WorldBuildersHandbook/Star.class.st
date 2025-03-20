@@ -147,10 +147,45 @@ Star >> companion: anObject [
 	companion := anObject
 ]
 
+{ #category : 'as yet unclassified' }
+Star >> companionCheck [
+
+	^ self multipleStarCheck
+]
+
 { #category : 'accessing' }
 Star >> luminosity [
 
 	^ diameter squared * ((temperature / 5772) squared)
+]
+
+{ #category : 'as yet unclassified' }
+Star >> multipleStarCheck [
+
+	| roller |
+	roller := DieRoller roller.
+
+	^ self multipleStarDM + (roller roll: 2 d: 6) >= 10
+]
+
+{ #category : 'as yet unclassified' }
+Star >> multipleStarDM [
+
+	| dm |
+	dm := 0.
+
+	(#( 'BD' 'D' 'PSR' 'BH' 'NS' ) includes: stellarType)
+		ifTrue: [ dm := dm - 1 ]
+		ifFalse: [
+			(#( 'Ia' 'Ib' 'II' 'III' 'IV' ) includes: stellarClass)
+				ifTrue: [ dm := dm + 1 ].
+
+			(#( 'V' 'VI' ) includes: stellarClass) ifTrue: [
+				stellarType = 'M' ifTrue: [ dm := dm - 1 ].
+				(#( 'O' 'B' 'A' 'F' ) includes: stellarType) ifTrue: [
+					dm := dm + 1 ] ] ].
+
+	^ dm
 ]
 
 { #category : 'accessing' }

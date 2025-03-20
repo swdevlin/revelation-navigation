@@ -21,26 +21,6 @@ SolarSystem >> generatePrimary [
 	primary := Star generateNew
 ]
 
-{ #category : 'as yet unclassified' }
-SolarSystem >> multipleStarDM [
-
-	| dm |
-	dm := 0.
-
-	(#( 'BD' 'D' 'PSR' 'BH' 'NS' ) includes: primary stellarType)
-		ifTrue: [ dm := dm - 1 ]
-		ifFalse: [
-			(#( 'Ia' 'Ib' 'II' 'III' 'IV' ) includes: primary stellarClass)
-				ifTrue: [ dm := dm + 1 ].
-
-			(#( 'V' 'VI' ) includes: primary stellarClass) ifTrue: [
-				primary stellarType = 'M' ifTrue: [ dm := dm - 1 ].
-				(#( 'O' 'B' 'A' 'F' ) includes: primary stellarType) ifTrue: [
-					dm := dm + 1 ] ] ].
-
-	^ dm
-]
-
 { #category : 'accessing' }
 SolarSystem >> name [
 
