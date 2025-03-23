@@ -24,6 +24,26 @@ RollTable class >> allTables [
 ]
 
 { #category : 'table' }
+RollTable class >> companionStarDetermination [
+	"WBH: page 29"
+
+	^ self new
+		  initializeWithDictionary: (Dictionary newFrom: {
+					   (2 -> #Other).
+					   (3 -> #Other).
+					   (4 -> #Random).
+					   (5 -> #Random).
+					   (6 -> #Lesser).
+					   (7 -> #Lesser).
+					   (8 -> #Sibling).
+					   (9 -> #Sibling).
+					   (10 -> #Twin).
+					   (11 -> #Twin).
+					   (12 -> #Twin) })
+		  named: 'CompanionStarDetermination'
+]
+
+{ #category : 'table' }
 RollTable class >> giantStarClass [
 
 	^ self new
@@ -96,6 +116,26 @@ RollTable class >> named: aName [
 RollTable class >> register: aRollTable [
 
 	self tableRegistry at: aRollTable name put: aRollTable
+]
+
+{ #category : 'table' }
+RollTable class >> secondaryStarDetermination [
+	"WBH: page 29"
+
+	^ self new
+		  initializeWithDictionary: (Dictionary newFrom: {
+					   (2 -> #Other).
+					   (3 -> #Other).
+					   (4 -> #Random).
+					   (5 -> #Random).
+					   (6 -> #Random).
+					   (7 -> #Lesser).
+					   (8 -> #Lesser).
+					   (9 -> #Sibling).
+					   (10 -> #Sibling).
+					   (11 -> #Twin).
+					   (12 -> #Twin) })
+		  named: 'SecondaryStarDetermination'
 ]
 
 { #category : 'table' }
@@ -248,7 +288,7 @@ RollTable >> name: anObject [
 RollTable >> roll [
 
 	| r dice |
-	dice := DieRoller new.
+	dice := DieRoller roller .
 	r := dice roll: 2 d: 6.
 	^ self roll: r
 

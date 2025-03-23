@@ -20,6 +20,26 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
+StarCatalog class >> subtypeInterpolate: vector lower: lower upper: upper subtype: subtype [
+
+	| lowerValue upperValue factor items |
+	items := vector size.
+	lowerValue := vector at: lower.
+	upperValue := upper > items
+		              ifTrue: [
+			              | delta |
+			              delta := (vector at: items) - (vector at: items - 1).
+			              upperValue := (vector at: items) + delta ]
+		              ifFalse: [ vector at: upper ].
+
+	factor := subtype < 5
+		          ifTrue: [ subtype / 5.0 ]
+		          ifFalse: [ subtype - 5 / 5.0 ].
+
+	^ lowerValue + (factor * (upperValue - lowerValue))
+]
+
+{ #category : 'as yet unclassified' }
 StarCatalog >> colourForType: type [
 
 	^ colours at: type
@@ -97,6 +117,20 @@ StarCatalog >> initialize [
 	                 #( 130000 24000 8800 600 nil 0.082 0.027 )
 	                 #( 100000 26000 8800 720 nil 0.0029 0.00072 )
 	                 #( 90000 19000 7300 1200 nil 0.00029 0.00019 ) )
+]
+
+{ #category : 'as yet unclassified' }
+StarCatalog >> interpolate: vector lowerBound: lower upperBound: upper subtype: subtype [
+
+	| lowerValue upperValue factor |
+	lowerValue := vector at: lower.
+	upperValue := vector at: upper.
+
+	factor := subtype < 5
+		          ifTrue: [ subtype / 5.0 ]
+		          ifFalse: [ subtype - 5 / 5.0 ].
+
+	^ lowerValue + (factor * (upperValue - lowerValue))
 ]
 
 { #category : 'as yet unclassified' }

@@ -1,25 +1,9 @@
 Class {
 	#name : 'SolarSystemTest',
-	#superclass : 'TestCase',
-	#instVars : [
-		'roller'
-	],
+	#superclass : 'RollerBaseTest',
 	#category : 'Traveller-WorldBuildersHandbook-Tests',
 	#package : 'Traveller-WorldBuildersHandbook-Tests'
 }
-
-{ #category : 'running' }
-SolarSystemTest >> setUp [
-
-	roller := DieRoller roller.
-	roller clearQueue
-]
-
-{ #category : 'running' }
-SolarSystemTest >> tearDown [
-
-	roller clearQueue
-]
 
 { #category : 'tests' }
 SolarSystemTest >> testGeneratePrimary [
