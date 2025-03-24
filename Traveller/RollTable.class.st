@@ -33,7 +33,7 @@ RollTable class >> companionStarDetermination [
 					   (3 -> #Other).
 					   (4 -> #Random).
 					   (5 -> #Random).
-					   (6 -> #Lesser).
+					   (6 -> #Random).
 					   (7 -> #Lesser).
 					   (8 -> #Sibling).
 					   (9 -> #Sibling).
@@ -306,7 +306,6 @@ RollTable >> roll: aRoll [
 
 	max := self max.
 	aRoll + mod > max ifTrue: [ ^ table at: max ].
-
 	^ table at: aRoll ifAbsent: [ 'Invalid roll' ]
 ]
 

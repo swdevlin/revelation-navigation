@@ -144,6 +144,26 @@ StarTest >> testGenerateNewBrownDwarf [
 ]
 
 { #category : 'tests' }
+StarTest >> testGenerateRandomFor [
+
+	| star newStar wbh |
+	wbh := WorldBuildersHandbook new.
+	star := Star newWithType: 'K' subtype: 6 class: 'V'.
+	newStar := wbh generateRandomFor: star.
+	self assert: (star isHotter: newStar)
+]
+
+{ #category : 'tests' }
+StarTest >> testGenerateSecondaryForStar [
+
+	| star companion wbh|
+	wbh := WorldBuildersHandbook new.
+	star := Star newWithType: 'K' subtype: 5 class: 'V'.
+ 	companion := wbh generateSecondaryFor: star.
+	self assert: companion isNotNil.
+]
+
+{ #category : 'tests' }
 StarTest >> testGenerateSiblingFor [
 
 	| star sibling wbh |
@@ -188,6 +208,38 @@ StarTest >> testGenerateWhiteDwarf [
 	self assert: star stellarClass isNil.
 	self assert: star mass equals: 7 / 10.0 + (3 / 100.0).
 	self assert: star age equals: ((star mass) * 5).
+]
+
+{ #category : 'tests' }
+StarTest >> testHasCompanion [
+
+	| wbh |
+	wbh := WorldBuildersHandbook new.
+
+	roller queueD: 6 value: 2.
+	roller queueD: 6 value: 2.
+
+	self deny: wbh hasCompanion.
+	roller queueD: 6 value: 6.
+	roller queueD: 6 value: 6.
+
+	self assert: wbh hasCompanion
+]
+
+{ #category : 'tests' }
+StarTest >> testHasSecondary [
+
+	| wbh |
+	wbh := WorldBuildersHandbook new.
+
+	roller queueD: 6 value: 2.
+	roller queueD: 6 value: 2.
+
+	self deny: wbh hasSecondary.
+	roller queueD: 6 value: 6.
+	roller queueD: 6 value: 6.
+
+	self assert: wbh hasSecondary
 ]
 
 { #category : 'tests' }
@@ -265,6 +317,23 @@ StarTest >> testMultipleStarDM [
 			self assert: primary multipleStarDM equals: 1 ] ].
 	
 
+]
+
+{ #category : 'tests' }
+StarTest >> testOtherNonPrimary [
+
+	| wbh star |
+	wbh := WorldBuildersHandbook new.
+
+	roller queueD: 6 value: 3.
+	roller queueD: 6 value: 4.
+	star := wbh generateOtherStar.
+	self assert: star stellarType equals: 'D'.
+
+	roller queueD: 6 value: 5.
+	roller queueD: 6 value: 4.
+	star := wbh generateOtherStar.
+	self assert: (Star brownDwarfTypes includes: star stellarType)
 ]
 
 { #category : 'tests' }

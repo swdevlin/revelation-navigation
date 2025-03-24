@@ -15,35 +15,17 @@ Class {
 
 { #category : 'generate star' }
 WorldBuildersHandbook >> generateCompanionFor: star [
+	" wbh: 29"
 
-	| t dm table |
+	| result dm table |
 	dm := (#( 'III' 'IV' ) includes: star stellarClass)
 		      ifTrue: [ -1 ]
 		      ifFalse: [ 0 ].
 	table := RollTable companionStarDetermination.
 	table mod: dm.
-	t := table roll.
+	result := table roll.
 
-	t
-		caseOf: {
-				(#Other -> [
-				 (DieRoller roller roll: 2 d: 6) < 8
-					 ifTrue: [ ^ self generateNewWhiteDwarf ]
-					 ifFalse: [ ^ self generateNewBrownDwarf ] ]).
-				(#Random -> [
-				 | c |
-				 c := self generateNew.
-				 (c isHotter: star)
-					 ifTrue: [ ^ self generateLesserFor: star ]
-					 ifFalse: [ ^ c ] ]).
-				(#Lesser -> [ ^ self generateLesserFor: star ]).
-				(#Sibling -> [ ^ self generateSiblingFor: star ]).
-				(#Twin -> [
-				 ^ Star
-					   newWithType: star stellarType
-					   subtype: star subtype
-					   class: star stellarClass ]) }
-		otherwise: [ self notImplemented ]
+	^ self generateStarFromNonPrimaryResult: result for: star
 ]
 
 { #category : 'generate star' }
@@ -115,7 +97,7 @@ WorldBuildersHandbook >> generateNew [
 		           stellarType: type.
 
 	catalog := StarCatalog new.
-	star := self new.
+	star := Star new.
 	star
 		stellarClass: class;
 		subtype: subtype;
@@ -210,6 +192,40 @@ WorldBuildersHandbook >> generateNewWhiteDwarf [
 ]
 
 { #category : 'generate star' }
+WorldBuildersHandbook >> generateOtherStar [
+
+	(DieRoller roller roll: 2 d: 6) < 8
+		ifTrue: [ ^ self generateNewWhiteDwarf ]
+		ifFalse: [ ^ self generateNewBrownDwarf ]
+]
+
+{ #category : 'generate star' }
+WorldBuildersHandbook >> generateRandomFor: primary [
+	"wbh: 29"
+
+	| star |
+	star := self generateNew.
+	(star isHotter: primary)
+		ifTrue: [ ^ self generateLesserFor: primary ]
+		ifFalse: [ ^ star ]
+]
+
+{ #category : 'generate star' }
+WorldBuildersHandbook >> generateSecondaryFor: star [
+	" wbh: 29"
+
+	| result dm table |
+	dm := (#( 'III' 'IV' ) includes: star stellarClass)
+		      ifTrue: [ -1 ]
+		      ifFalse: [ 0 ].
+	table := RollTable secondaryStarDetermination.
+	table mod: dm.
+	result := table roll.
+
+	^ self generateStarFromNonPrimaryResult: result for: star
+]
+
+{ #category : 'generate star' }
 WorldBuildersHandbook >> generateSiblingFor: aStar [
 
 	| t s c r roller |
@@ -231,6 +247,46 @@ WorldBuildersHandbook >> generateSiblingFor: aStar [
 		ifFalse: [ s := s + r ].
 
 	^ Star newWithType: t subtype: s class: c
+]
+
+{ #category : 'generate star' }
+WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
+
+	| messageMap |
+	messageMap := Dictionary newFrom: {
+			             (#Other -> [ self generateOtherStar ]).
+			             (#Random -> [ self generateRandomFor: star ]).
+			             (#Lesser -> [ self generateLesserFor: star ]).
+			             (#Sibling -> [ self generateSiblingFor: star ]).
+			             (#Twin -> [ self generateTwinFor: star ]) }.
+
+	^ messageMap
+		  at: result
+		  ifAbsent: [
+		  Error signal: 'Unexpected non-primary type: ' , result asString ]
+]
+
+{ #category : 'generate star' }
+WorldBuildersHandbook >> generateTwinFor: aStar [
+
+	^ Star
+		  newWithType: aStar stellarType
+		  subtype: aStar subtype
+		  class: aStar stellarClass
+]
+
+{ #category : 'testing' }
+WorldBuildersHandbook >> hasCompanion [
+	"wbh: 23"
+
+	^ (DieRoller roller roll: 2 d: 6) >= 10
+]
+
+{ #category : 'testing' }
+WorldBuildersHandbook >> hasSecondary [
+	"wbh: 23"
+
+	^ (DieRoller roller roll: 2 d: 6) >= 10
 ]
 
 { #category : 'as yet unclassified' }
@@ -269,8 +325,9 @@ WorldBuildersHandbook >> whiteDwarfInterpolate: age values: values [
 WorldBuildersHandbook >> whiteDwarfTemperature: age [
 	"wbh: 227"
 
-^ self whiteDwarfInterpolate: age values:  #( 100000 25000 10000 8000 7000 5500 5000 4000 3800 )
-
+	^ self
+		  whiteDwarfInterpolate: age
+		  values: #( 100000 25000 10000 8000 7000 5500 5000 4000 3800 )
 ]
 
 { #category : 'as yet unclassified' }
