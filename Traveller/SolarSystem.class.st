@@ -11,8 +11,8 @@ Class {
 		'name',
 		'primary'
 	],
-	#category : 'Traveller-WorldBuildersHandbook',
-	#package : 'Traveller-WorldBuildersHandbook'
+	#category : 'Traveller',
+	#package : 'Traveller'
 }
 
 { #category : 'as yet unclassified' }

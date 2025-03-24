@@ -11,7 +11,7 @@ StarTest >> testAdditionalStarCheck [
 	| primary |
 
 	"Has DM of 0"
-	primary := Star generateNewType: 'K' subtype: 7 class: 'V'.
+	primary := Star newWithType: 'K' subtype: 7 class: 'V'.
    
 	"Check on 10+"
 	roller queueD: 6 value: 	5.
@@ -24,7 +24,7 @@ StarTest >> testAdditionalStarCheck [
 	self assert: (primary multipleStarCheck) .
 
 	"DM +1"
-	primary := Star generateNewType: 'O' subtype: 7 class: 'III'.
+	primary := Star newWithType: 'O' subtype: 7 class: 'III'.
 
 	"Make sure DM is applied"
 	roller queueD: 6 value: 	5.
@@ -38,7 +38,7 @@ StarTest >> testAdditionalStarCheck [
 StarTest >> testAgeCalculatedOnce [
 
 	| star first second |
-	star := Star generateNewType: 'K' subtype: 7 class: 'V'.
+	star := Star newWithType: 'K' subtype: 7 class: 'V'.
 
 	first := star age.	
 	second := star age.	
@@ -51,7 +51,7 @@ StarTest >> testAgeCalculatedOnce [
 StarTest >> testCompanionCheck [
 
 	| star |
-	star := Star generateNewType: 'K' subtype: 5 class: 'V'.
+	star := Star newWithType: 'K' subtype: 5 class: 'V'.
 	roller queueD: 6 value: 5.
 	roller queueD: 6 value: 4.
 	self deny: star companionCheck
@@ -61,10 +61,10 @@ StarTest >> testCompanionCheck [
 StarTest >> testCoolerType [
 
 	| star |
-	star := Star generateNewType: 'G' subtype: 7 class: 'V'.
+	star := Star newWithType: 'G' subtype: 7 class: 'V'.
 	self assert: star coolerType equals: 'K'.
 	
-	star := Star generateNewType: 'M' subtype: 7 class: 'V'.
+	star := Star newWithType: 'M' subtype: 7 class: 'V'.
 	self assert: star coolerType equals: 'M'
 	
 ]
@@ -72,9 +72,10 @@ StarTest >> testCoolerType [
 { #category : 'tests' }
 StarTest >> testGenerateCompanionForStar [
 
-	| star companion|
-	star := Star generateNewType: 'K' subtype: 5 class: 'V'.
- 	companion := Star generateCompanionFor: star.
+	| star companion wbh|
+	wbh := WorldBuildersHandbook new.
+	star := Star newWithType: 'K' subtype: 5 class: 'V'.
+ 	companion := wbh generateCompanionFor: star.
 	self assert: companion isNotNil.
 ]
 
@@ -84,7 +85,7 @@ StarTest >> testGenerateCompanionIfPresent [
 	roller queueD: 6 value: 5.
 	roller queueD: 6 value: 3.
 
-	star := Star generateNewType: 'K' subtype: 5 class: 'V'.
+	star := Star newWithType: 'K' subtype: 5 class: 'V'.
 	star generateCompanionIfPresent.
 	
 	self assert: star companion isNil
@@ -95,36 +96,35 @@ StarTest >> testGenerateCompanionIfPresent [
 { #category : 'tests' }
 StarTest >> testGenerateLesserFor [
 
-	| star lesser |
-	star := Star generateNewType: 'K' subtype: 6 class: 'V'.
-	lesser := Star generateLesserFor: star.
+	| star lesser wbh |
+	wbh := WorldBuildersHandbook new.
+	star := Star newWithType: 'K' subtype: 6 class: 'V'.
+	lesser := wbh generateLesserFor: star.
 	self assert: lesser stellarType equals: 'M'.
 	self assert: lesser stellarClass equals: star stellarClass.
 
-	star := Star generateNewType: 'M' subtype: 0 class: 'V'.
+	star := Star newWithType: 'M' subtype: 0 class: 'V'.
 	roller queueD: 6 value: 1.
 	roller queueD: 6 value: 3.
-	lesser := Star generateLesserFor: star.
+	lesser := wbh generateLesserFor: star.
 	self assert: lesser stellarType equals: 'M'.
 	self assert: lesser stellarClass equals: star stellarClass.
 	self assert: lesser subtype equals: 5.
 
 	"Creates a brown dwarf"
-	star := Star generateNewType: 'M' subtype: 8 class: 'V'.
+	star := Star newWithType: 'M' subtype: 8 class: 'V'.
 	roller queueD: 6 value: 1.
 	roller queueD: 6 value: 3.
-	lesser := Star generateLesserFor: star.
-	self assert:( #('Y' 'L' 'T' ) includes: lesser stellarType).
-	self assert: lesser stellarClass isNil.
-
-
-
+	lesser := wbh generateLesserFor: star.
+	self assert: (#( 'Y' 'L' 'T' ) includes: lesser stellarType).
+	self assert: lesser stellarClass isNil
 ]
 
 { #category : 'tests' }
 StarTest >> testGenerateNewBrownDwarf [
 
-	| star |
+	| star wbh |
+	wbh := WorldBuildersHandbook new.
 	"Make mass of 0.053"
 	roller queueD: 6 value: 5.
 	roller queueD: 6 value: 1.
@@ -132,7 +132,7 @@ StarTest >> testGenerateNewBrownDwarf [
 	roller queueD: 6 value: 1.
 	roller queueD: 6 value: 1.
 
-	star := Star generateNewBrownDwarf.
+	star := wbh generateNewBrownDwarf.
 
 	self assert: star mass - 0.053 < 0.00001.
 	self assert: star stellarType equals: 'L'.
@@ -146,42 +146,61 @@ StarTest >> testGenerateNewBrownDwarf [
 { #category : 'tests' }
 StarTest >> testGenerateSiblingFor [
 
-	| star sibling |
-	star := Star generateNewType: 'K' subtype: 6 class: 'V'.
+	| star sibling wbh |
+	wbh := WorldBuildersHandbook new.
+	star := Star newWithType: 'K' subtype: 6 class: 'V'.
 	roller queueD: 6 value: 1.
-	sibling := Star generateSiblingFor: star.
+	sibling := wbh generateSiblingFor: star.
 	self assert: sibling subtype equals: star subtype + 1.
 	self assert: sibling stellarType equals: star stellarType.
 	self assert: sibling stellarClass equals: star stellarClass.
 
 	"M star stays M"
-	star := Star generateNewType: 'M' subtype: 6 class: 'V'.
+	star := Star newWithType: 'M' subtype: 6 class: 'V'.
 	roller queueD: 6 value: 6.
-	sibling := Star generateSiblingFor: star.
+	sibling := wbh generateSiblingFor: star.
 	self assert: sibling subtype equals: 9.
 	self assert: sibling stellarType equals: star stellarType.
 	self assert: sibling stellarClass equals: star stellarClass.
 
 	"Tick over to cooler"
-	star := Star generateNewType: 'F' subtype: 6 class: 'V'.
+	star := Star newWithType: 'F' subtype: 6 class: 'V'.
 	roller queueD: 6 value: 6.
-	sibling := Star generateSiblingFor: star.
+	sibling := wbh generateSiblingFor: star.
 	self assert: sibling subtype equals: 2.
 	self assert: sibling stellarType equals: 'G'.
 	self assert: sibling stellarClass equals: star stellarClass
 ]
 
 { #category : 'tests' }
+StarTest >> testGenerateWhiteDwarf [
+
+	| wbh star |
+	roller queueD: 6 value: 5.
+	roller queueD: 6 value: 3.
+	roller queueD: 10 value: 3.
+	roller queueD: 3 value: 3.
+
+	wbh := WorldBuildersHandbook new.
+	star := wbh generateNewWhiteDwarf.
+	self assert: star stellarType equals: 'D'.
+	self assert: star subtype isNil.
+	self assert: star stellarClass isNil.
+	self assert: star mass equals: 7 / 10.0 + (3 / 100.0).
+	self assert: star age equals: ((star mass) * 5).
+]
+
+{ #category : 'tests' }
 StarTest >> testIsHotter [
 
 	| coolerStar hotterStar |
-	coolerStar := Star generateNewType: 'A' subtype: 5 class: 'V'.
-	hotterStar := Star generateNewType: 'A' subtype: 4 class: 'V'.
+	coolerStar := Star newWithType: 'A' subtype: 5 class: 'V'.
+	hotterStar := Star newWithType: 'A' subtype: 4 class: 'V'.
 
 	self assert: (hotterStar isHotter: coolerStar).
 	self deny: (coolerStar isHotter: hotterStar).
 
-	coolerStar := Star generateNewType: 'F' subtype: 5 class: 'V'.
+	coolerStar := Star newWithType: 'F' subtype: 5 class: 'V'.
 
 	self assert: (hotterStar isHotter: coolerStar).
 	self deny: (coolerStar isHotter: hotterStar).
@@ -246,6 +265,31 @@ StarTest >> testMultipleStarDM [
 			self assert: primary multipleStarDM equals: 1 ] ].
 	
 
+]
+
+{ #category : 'tests' }
+StarTest >> testWhiteDwarfTemperature [
+
+	| wbh t |
+	wbh := WorldBuildersHandbook new.
+	t := wbh whiteDwarfTemperature: 2.5.
+	self assert: t equals: 5500.
+
+	t := wbh whiteDwarfTemperature: 0.
+	self assert: t equals: 100000.
+
+	t := wbh whiteDwarfTemperature: 13.2.
+	self assert: ((t - 3786.6666) abs < 0.0001).
+
+]
+
+{ #category : 'tests' }
+StarTest >> testWhiteDwarfTemperatureMassAdjusted [
+
+	| wbh t |
+	wbh := WorldBuildersHandbook new.
+	t := wbh whiteDwarfTemperatureForMass: 0.8 age: 2.5.
+	self assert: t equals: 5500 * 0.8 / 0.6
 ]
 
 { #category : 'tests' }

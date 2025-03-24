@@ -16,8 +16,8 @@ Class {
 		'temperature',
 		'mass'
 	],
-	#category : 'Traveller-WorldBuildersHandbook',
-	#package : 'Traveller-WorldBuildersHandbook'
+	#category : 'Traveller',
+	#package : 'Traveller'
 }
 
 { #category : 'accessing' }
