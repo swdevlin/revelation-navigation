@@ -6,8 +6,7 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'sector',
-		'x',
-		'y',
+		'coordinates',
 		'name',
 		'primary'
 	],
@@ -15,10 +14,16 @@ Class {
 	#package : 'Traveller'
 }
 
-{ #category : 'as yet unclassified' }
-SolarSystem >> generatePrimary [
+{ #category : 'accessing' }
+SolarSystem >> coordinates [
 
-	primary := Star generateNew
+	^ coordinates
+]
+
+{ #category : 'accessing' }
+SolarSystem >> coordinates: anObject [
+
+	coordinates := anObject
 ]
 
 { #category : 'accessing' }
@@ -55,28 +60,4 @@ SolarSystem >> sector [
 SolarSystem >> sector: anObject [
 
 	sector := anObject
-]
-
-{ #category : 'accessing' }
-SolarSystem >> x [
-
-	^ x
-]
-
-{ #category : 'accessing' }
-SolarSystem >> x: anObject [
-
-	x := anObject
-]
-
-{ #category : 'accessing' }
-SolarSystem >> y [
-
-	^ y
-]
-
-{ #category : 'accessing' }
-SolarSystem >> y: anObject [
-
-	y := anObject
 ]

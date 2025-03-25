@@ -4,6 +4,7 @@ Implement the rules that generate star systems.
 wbh := WorldBuilderHandbook new.
 solarSystem := wbh newSolarSystem.
 star := wbh newStar.
+primary := wbh generatePrimaryStar.
 
 "
 Class {
@@ -12,6 +13,52 @@ Class {
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
 }
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignHotStarTypeTo: sc [
+
+	sc spectralType: RollTable hotStarType roll.
+
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignSpecialStarTypeTo: sc [
+	"wbh: 15,16"
+
+	| type |
+	sc spectralClass: RollTable specialStarClass roll.
+
+	sc spectralClass == #Giant ifTrue: [
+		sc spectralClass: RollTable giantStarClass roll.
+		sc spectralType: (self nonSpecialStarTypeWithRoll: nil).
+		^ sc ].
+
+	type := self nonSpecialStarTypeWithRoll: nil.
+
+	sc spectralClass == 'IV' ifTrue: [
+		type == 'M' ifTrue: [
+			| r |
+			r := 5 + RollTable starType lastRoll.
+			type := self nonSpecialStarTypeWithRoll: r.
+			type == 'O' ifTrue: [ type := 'B' ] ] ].
+
+	sc spectralClass == 'VI' ifTrue: [
+		type == 'F' ifTrue: [ type := 'G' ].
+		type == 'A' ifTrue: [ type := 'B' ] ].
+
+	^ sc spectralType: type
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> createDefaultClassification [
+
+	| sc starTypeTable |
+	starTypeTable := RollTable starType.
+	sc := SpectralClassification new
+		spectralClass: 'V';
+		spectralType: (starTypeTable roll).
+	^ sc
+]
 
 { #category : 'generate star' }
 WorldBuildersHandbook >> generateCompanionFor: star [
@@ -50,64 +97,6 @@ WorldBuildersHandbook >> generateLesserFor: aStar [
 				  newWithType: stellarType
 				  subtype: subtype
 				  class: aStar stellarClass ]
-]
-
-{ #category : 'generate star' }
-WorldBuildersHandbook >> generateNew [
-
-	| starTypeTable star type class subtype hotStarTable nonSpecialStarType catalog |
-	starTypeTable := RollTable starType.
-	hotStarTable := RollTable hotStarType.
-
-	nonSpecialStarType := [ :withRoll |
-	                      | t |
-	                      starTypeTable mod: 1.
-	                      withRoll
-		                      ifNil: [ t := starTypeTable roll ]
-		                      ifNotNil: [ t := starTypeTable roll: withRoll ].
-	                      t == #Hot ifTrue: [
-		                      t := RollTable hotStarType roll ].
-	                      t ].
-
-	class := 'V'.
-
-	type := starTypeTable roll.
-	type == #Hot ifTrue: [ type := RollTable hotStarType roll ].
-
-	type == #Special ifTrue: [
-		class := RollTable specialStarClass roll.
-		class == #Giant
-			ifTrue: [
-				class := RollTable giantStarClass roll.
-				type := nonSpecialStarType value: nil ]
-			ifFalse: [
-				type := nonSpecialStarType value: nil.
-				class == 'IV' ifTrue: [
-					type == 'M' ifTrue: [
-						| r |
-						r := 5 + starTypeTable lastRoll.
-						type := nonSpecialStarType value: r.
-						type == 'O' ifTrue: [ type := 'B' ] ] ].
-				class == 'VI' ifTrue: [
-					type == 'F' ifTrue: [ type := 'G' ].
-					type == 'A' ifTrue: [ type := 'B' ] ] ] ].
-
-	subtype := RollTable starSubtype
-		           rollForStellarClass: class
-		           stellarType: type.
-
-	catalog := StarCatalog new.
-	star := Star new.
-	star
-		stellarClass: class;
-		subtype: subtype;
-		stellarType: type;
-		mass: (catalog massForType: type subtype: subtype class: class);
-		temperature: (catalog temperatureForType: type subtype: subtype);
-		diameter: (catalog diameterForType: type subtype: subtype class: class);
-		colour: (catalog colourForType: type) .
-
-	^ star
 ]
 
 { #category : 'generate star' }
@@ -200,11 +189,40 @@ WorldBuildersHandbook >> generateOtherStar [
 ]
 
 { #category : 'generate star' }
+WorldBuildersHandbook >> generatePrimaryStar [
+
+	| star catalog sc |
+	sc := self primaryStarClassification.
+
+	catalog := StarCatalog new.
+	star := Star new.
+	star
+		spectralClassification: sc;
+		mass: (catalog
+				 massForType: sc spectralType
+				 subtype: sc subtype
+				 class: sc spectralClass);
+		temperature:
+			(catalog temperatureForType: sc spectralType subtype: sc subtype);
+		diameter: (catalog
+				 diameterForType: sc spectralType
+				 subtype: sc subtype
+				 class: sc spectralClass);
+		colour: (catalog colourForType: sc spectralType);
+		orbitPosition: 0 @ 0;
+		inclination: 0;
+		eccentricity: 0;
+		orbit: 0.
+
+	^ star
+]
+
+{ #category : 'generate star' }
 WorldBuildersHandbook >> generateRandomFor: primary [
 	"wbh: 29"
 
 	| star |
-	star := self generateNew.
+	star := self generatePrimaryStar.
 	(star isHotter: primary)
 		ifTrue: [ ^ self generateLesserFor: primary ]
 		ifFalse: [ ^ star ]
@@ -287,6 +305,106 @@ WorldBuildersHandbook >> hasSecondary [
 	"wbh: 23"
 
 	^ (DieRoller roller roll: 2 d: 6) >= 10
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> nonSpecialStarType [
+
+	| t starTypeTable |
+	starTypeTable := RollTable starType.
+	starTypeTable mod: 1.
+
+	t := starTypeTable roll.
+
+	t == #Hot ifTrue: [ t := RollTable hotStarType roll ].
+	^ t
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> nonSpecialStarTypeWithRoll: withRoll [
+
+	| t starTypeTable |
+	starTypeTable := RollTable starType.
+	starTypeTable mod: 1.
+
+	t := withRoll
+		     ifNil: [ starTypeTable roll ]
+		     ifNotNil: [ starTypeTable roll: withRoll ].
+
+	t == #Hot ifTrue: [ t := RollTable hotStarType roll ].
+	^ t
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> primaryStarClassification [
+	"wbh: 14
+		
+	Randomly generate the spectral classification  of the primary star"
+
+	| sc |
+	sc := self createDefaultClassification.
+
+	sc spectralType == #Hot ifTrue: [ self assignHotStarTypeTo: sc ].
+
+	sc spectralType == #Special ifTrue: [
+		Transcript show: 'special'; cr.
+		self assignSpecialStarTypeTo: sc ].
+
+	sc subtype: (RollTable starSubtype
+			 rollForStellarClass: sc spectralClass
+			 stellarType: sc spectralType).
+
+	^ sc
+
+
+
+	"	| sc starTypeTable type class hotStarTable nonSpecialStarType |
+	starTypeTable := RollTable starType.
+	hotStarTable := RollTable hotStarType.
+
+	sc := SpectralClassification
+		      new;
+		      spectralClass: 'V';
+		      yourself.
+
+	nonSpecialStarType := [ :withRoll |
+	                      | t |
+	                      starTypeTable mod: 1.
+	                      withRoll
+		                      ifNil: [ t := starTypeTable roll ]
+		                      ifNotNil: [ t := starTypeTable roll: withRoll ].
+	                      t == #Hot ifTrue: [
+		                      t := RollTable hotStarType roll ].
+	                      t ].
+
+	sc spectralType: starTypeTable roll.
+
+	sc spectralType == #Hot ifTrue: [
+		sc spectralType: RollTable hotStarType roll ].
+
+	sc spectralType == #Special ifTrue: [
+		sc spectralClass: RollTable specialStarClass roll.
+		sc spectralClass == #Giant
+			ifTrue: [
+				class := RollTable giantStarClass roll.
+				type := nonSpecialStarType value: nil ]
+			ifFalse: [
+				type := nonSpecialStarType value: nil.
+				class == 'IV' ifTrue: [
+					type == 'M' ifTrue: [
+						| r |
+						r := 5 + starTypeTable lastRoll.
+						type := nonSpecialStarType value: r.
+						type == 'O' ifTrue: [ type := 'B' ] ] ].
+				class == 'VI' ifTrue: [
+					type == 'F' ifTrue: [ type := 'G' ].
+					type == 'A' ifTrue: [ type := 'B' ] ] ] ].
+
+	sc subtype: (RollTable starSubtype
+			 rollForStellarClass: sc spectralClass
+			 stellarType: sc spectralType).
+
+	^ sc"
 ]
 
 { #category : 'as yet unclassified' }

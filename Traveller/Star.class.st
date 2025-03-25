@@ -263,6 +263,14 @@ Star >> multipleStarDM [
 	^ dm
 ]
 
+{ #category : 'as yet unclassified' }
+Star >> spectralClassification: sc [
+
+	stellarClass := sc spectralClass.
+	stellarType := sc spectralType.
+	subtype := sc subtype
+]
+
 { #category : 'accessing' }
 Star >> stellarClass [
 
