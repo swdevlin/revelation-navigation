@@ -44,6 +44,12 @@ DieRoller >> clearQueue [
 
 ]
 
+{ #category : 'as yet unclassified' }
+DieRoller >> floatBetween: lowerBound and: higherBound [
+
+	^ rng nextBetween: lowerBound and: higherBound
+]
+
 { #category : 'initialization' }
 DieRoller >> initialize [
 
