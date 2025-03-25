@@ -297,16 +297,23 @@ RollTable >> roll [
 { #category : 'accessing' }
 RollTable >> roll: aRoll [
 
-	| min max |
+	| min max result |
+	lastRoll := aRoll.
 
-	lastRoll := aRoll .
-	
 	min := self min.
-	aRoll + mod < min ifTrue: [ ^ table at: min ].
-
 	max := self max.
-	aRoll + mod > max ifTrue: [ ^ table at: max ].
-	^ table at: aRoll ifAbsent: [ 'Invalid roll' ]
+	(aRoll + mod between: min and: max)
+		ifTrue: [
+			result := table
+				          at: aRoll
+				          ifAbsent: [ Error signal: 'Roll not found in table' ] ]
+		ifFalse: [
+			aRoll + mod < min ifTrue: [ result := table at: min ].
+			aRoll + mod > max ifTrue: [ result := table at: max ] ].
+
+	result isBlock
+		ifTrue: [ ^ result value ]
+		ifFalse: [ ^ result ]
 ]
 
 { #category : 'as yet unclassified' }
