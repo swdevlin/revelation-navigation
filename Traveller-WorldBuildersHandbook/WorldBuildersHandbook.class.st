@@ -77,19 +77,22 @@ WorldBuildersHandbook >> calculateEccentricity [
 ]
 
 { #category : 'as yet unclassified' }
-WorldBuildersHandbook >> calculateEccentricityFor: stellarObject orbiting: star [
+WorldBuildersHandbook >> calculateEccentricityFor: stellarObject orbiting: star in: solarSystem [
+	"wbh 27"
 
-	| r table mod modifierMap |
+	| r table dm modifierMap |
 	modifierMap := Dictionary newFromPairs: {
 			               (Star -> 2).
 			               (Planetoid -> 1) }.
 
-	mod := modifierMap at: stellarObject class ifAbsent: [ 0 ].
-
+	dm := modifierMap at: stellarObject class ifAbsent: [ 0 ].
+	star companion ifNotNil: [ dm := dm + 1 ].
+	(stellarObject orbit < 1 and: solarSystem primary age > 1) ifTrue: [
+		dm := dm - 1 ].
 	table := self class eccentricityTable.
 
-	table mod: mod.
-	r := table roll mod roundTo: 0.001.
+	table mod: dm.
+	r := table roll roundTo: 0.001.
 
 	^ r
 ]
