@@ -64,7 +64,8 @@ WorldBuildersHandbook >> createDefaultClassification [
 WorldBuildersHandbook >> generateCompanionFor: star [
 	" wbh: 29"
 
-	| result dm table |
+	| result dm table companion dice |
+	dice := DieRoller roller.
 	dm := (#( 'III' 'IV' ) includes: star stellarClass)
 		      ifTrue: [ -1 ]
 		      ifFalse: [ 0 ].
@@ -72,7 +73,10 @@ WorldBuildersHandbook >> generateCompanionFor: star [
 	table mod: dm.
 	result := table roll.
 
-	^ self generateStarFromNonPrimaryResult: result for: star
+	companion := self generateStarFromNonPrimaryResult: result for: star.
+	companion orbit: ((dice floatBetween: 0.05 and: 0.65) roundTo: 0.01).
+
+	star companion: companion
 ]
 
 { #category : 'generate star' }
@@ -278,10 +282,10 @@ WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
 			             (#Sibling -> [ self generateSiblingFor: star ]).
 			             (#Twin -> [ self generateTwinFor: star ]) }.
 
-	^ messageMap
+	^ (messageMap
 		  at: result
 		  ifAbsent: [
-		  Error signal: 'Unexpected non-primary type: ' , result asString ]
+		  Error signal: 'Unexpected non-primary type: ' , result asString ]) value
 ]
 
 { #category : 'generate star' }
