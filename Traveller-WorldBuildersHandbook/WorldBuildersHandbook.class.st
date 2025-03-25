@@ -15,6 +15,22 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook class >> eccentricityTable [
+
+	^ RollTable new
+		  initializeWithDictionary: (Dictionary newFrom: {
+					   (5 -> [ DieRoller roller floatBetween: 0.0 and: 0.005 ]).
+					   (6 -> [ DieRoller roller floatBetween: 0.005 and: 0.035 ]).
+					   (7 -> [ DieRoller roller floatBetween: 0.005 and: 0.035 ]).
+					   (8 -> [ DieRoller roller floatBetween: 0.035 and: 0.095 ]).
+					   (9 -> [ DieRoller roller floatBetween: 0.035 and: 0.095 ]).
+					   (10 -> [ DieRoller roller floatBetween: 0.095 and: 0.35 ]).
+					   (11 -> [ DieRoller roller floatBetween: 0.15 and: 0.65 ]).
+					   (12 -> [ DieRoller roller floatBetween: 0.4 and: 0.9 ]) })
+		  named: 'SpecialStarClass'
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignHotStarTypeTo: sc [
 
 	sc spectralType: RollTable hotStarType roll.
@@ -47,6 +63,35 @@ WorldBuildersHandbook >> assignSpecialStarTypeTo: sc [
 		type == 'A' ifTrue: [ type := 'B' ] ].
 
 	^ sc spectralType: type
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> calculateEccentricity [
+
+	| r table |
+	table := self class eccentricityTable.
+
+	r := table roll roundTo: 0.001.
+	
+	^ r
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> calculateEccentricityFor: stellarObject orbiting: star [
+
+	| r table mod modifierMap |
+	modifierMap := Dictionary newFromPairs: {
+			               (Star -> 2).
+			               (Planetoid -> 1) }.
+
+	mod := modifierMap at: stellarObject class ifAbsent: [ 0 ].
+
+	table := self class eccentricityTable.
+
+	table mod: mod.
+	r := table roll mod roundTo: 0.001.
+
+	^ r
 ]
 
 { #category : 'as yet unclassified' }
