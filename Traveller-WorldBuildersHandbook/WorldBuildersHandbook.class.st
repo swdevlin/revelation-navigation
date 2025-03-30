@@ -1,9 +1,22 @@
 "
 Implement the rules that generate star systems.
 
+Messages that start with `generate` create a complete instance of the object. e.g. `generatePlanet` will create a new planet and all associated characteristics and moons.
+
+Messages that start with `calculate` calculate a value and return a value. e.g. `calculateEccentricityFor:orbiting:in:` calculates the orbit eccentricity of an object but does not assign the value to the object.
+
+Messages that start with `assign` will assign the value to the object. e.g. `assignHotStarTypeTo:` will set the stellar type, subtype, and class to the object.
+
+
 wbh := WorldBuilderHandbook new.
-solarSystem := wbh newSolarSystem.
+
+""This generates a completely populated solar system""
+solarSystem := wbh generateSolarSystem.
+
+""Generate a new star""
 star := wbh newStar.
+
+""Generate the primary star for a solar system""
 primary := wbh generatePrimaryStar.
 
 "
@@ -85,10 +98,18 @@ WorldBuildersHandbook >> assignSpecialStarTypeTo: sc [
 ]
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignStarCharacteristicsTo: star orbiting: parent in: solarSystem [
+
+	self calculateEccentricityFor: star orbiting: parent in: solarSystem.
+	star inclination: self calculateInclination
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook >> calculateEccentricityFor: stellarObject orbiting: star in: solarSystem [
 	"wbh 27"
 
 	| r table dm modifierMap |
+	
 	modifierMap := Dictionary newFromPairs: {
 			               (Star -> 2).
 			               (Planetoid -> 1) }.
@@ -123,7 +144,7 @@ WorldBuildersHandbook >> createDefaultClassification [
 ]
 
 { #category : 'generate star' }
-WorldBuildersHandbook >> generateCompanionFor: star [
+WorldBuildersHandbook >> generateCompanionFor: star in: solarsystem [
 	" wbh: 29"
 
 	| result dm table companion dice |
@@ -137,8 +158,11 @@ WorldBuildersHandbook >> generateCompanionFor: star [
 
 	companion := self generateStarFromNonPrimaryResult: result for: star.
 	companion orbit: ((dice floatBetween: 0.05 and: 0.65) roundTo: 0.01).
-
-	star companion: companion
+	self
+		assignStarCharacteristicsTo: companion
+		orbiting: star
+		in: solarsystem.
+	^ companion
 ]
 
 { #category : 'generate star' }
@@ -295,10 +319,10 @@ WorldBuildersHandbook >> generateRandomFor: primary [
 ]
 
 { #category : 'generate star' }
-WorldBuildersHandbook >> generateSecondaryFor: star [
+WorldBuildersHandbook >> generateSecondaryFor: star in: solarSystem inBand: bandRange [
 	" wbh: 29"
 
-	| result dm table |
+	| result dm table secondary companion |
 	dm := (#( 'III' 'IV' ) includes: star stellarClass)
 		      ifTrue: [ -1 ]
 		      ifFalse: [ 0 ].
@@ -306,7 +330,21 @@ WorldBuildersHandbook >> generateSecondaryFor: star [
 	table mod: dm.
 	result := table roll.
 
-	^ self generateStarFromNonPrimaryResult: result for: star
+	secondary := self generateStarFromNonPrimaryResult: result for: star.
+
+	secondary orbit:
+		(DieRoller roller floatBetween: bandRange x and: bandRange y).
+
+	secondary eccentricity: (self
+			 calculateEccentricityFor: secondary
+			 orbiting: star
+			 in: solarSystem).
+
+	self hasCompanion ifTrue: [
+		companion := self generateCompanionFor: secondary in: solarSystem.
+		secondary companion: star ].
+
+	^ secondary
 ]
 
 { #category : 'generate star' }
@@ -331,6 +369,31 @@ WorldBuildersHandbook >> generateSiblingFor: aStar [
 		ifFalse: [ s := s + r ].
 
 	^ Star newWithType: t subtype: s class: c
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> generateSolarSystem [
+	" Generate a complete solar system"
+
+	| solarsystem star primary |
+	solarsystem := SolarSystem new.
+
+	primary := self generatePrimaryStar.
+	solarsystem primary: primary.
+
+	self hasCompanion ifTrue: [
+		star := self generateCompanionFor: primary in: solarsystem .
+		primary companion: star ].
+
+	#( (0.5 @ 5.5) (5.5 @ 11.5) (11.5 @ 17) ) do: [ :orbitBand |
+		self hasSecondary ifTrue: [
+			star := self
+				        generateSecondaryFor: primary
+				        in: solarsystem
+				        inBand: orbitBand.
+			solarsystem addStar: star ] ].
+
+	^ solarsystem
 ]
 
 { #category : 'generate star' }

@@ -11,7 +11,8 @@ Class {
 		'colour',
 		'companion',
 		'age',
-		'luminosity'
+		'luminosity',
+		'stellarBodies'
 	],
 	#classVars : [
 		'brownDwarfLuminosity',
@@ -125,6 +126,13 @@ Star class >> typeOrder [
 	^ #( 'O' 'B' 'A' 'F' 'G' 'K' 'M' )
 ]
 
+{ #category : 'adding' }
+Star >> addStar: star [
+
+	stellarBodies add: star.
+	star orbiting: self
+]
+
 { #category : 'accessing' }
 Star >> age [
 
@@ -182,7 +190,8 @@ Star >> companion [
 { #category : 'accessing' }
 Star >> companion: anObject [
 
-	companion := anObject
+	companion := anObject.
+	companion orbiting: self
 ]
 
 { #category : 'as yet unclassified' }
@@ -209,6 +218,24 @@ Star >> generateCompanionIfPresent [
 	^ self companion
 ]
 
+{ #category : 'initialization' }
+Star >> initialize [
+
+	stellarBodies := OrderedCollection new
+]
+
+{ #category : 'testing' }
+Star >> isBrownDward [
+
+	#( 'BD' 'Y' 'T' 'L' ) includes: stellarType
+]
+
+{ #category : 'testing' }
+Star >> isBrownDwarf [
+
+	#( 'BD' 'Y' 'T' 'L' ) includes: stellarType
+]
+
 { #category : 'testing' }
 Star >> isHotter: aStar [
 
@@ -218,6 +245,12 @@ Star >> isHotter: aStar [
 		ifTrue: [ ^ subtype < aStar subtype ]
 		ifFalse: [
 		^ (types indexOf: stellarType) < (types indexOf: aStar stellarType) ]
+]
+
+{ #category : 'testing' }
+Star >> isPostStellar [
+
+	#( 'D' 'BH' 'NS' 'PSR' ) includes: stellarType
 ]
 
 { #category : 'accessing' }

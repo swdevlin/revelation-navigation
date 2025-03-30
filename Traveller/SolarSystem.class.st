@@ -14,6 +14,12 @@ Class {
 	#package : 'Traveller'
 }
 
+{ #category : 'adding' }
+SolarSystem >> addStar: star [
+
+	self primary addStar: star
+]
+
 { #category : 'accessing' }
 SolarSystem >> coordinates [
 

@@ -14,7 +14,8 @@ Class {
 		'name',
 		'period',
 		'temperature',
-		'mass'
+		'mass',
+		'orbiting'
 	],
 	#category : 'Traveller',
 	#package : 'Traveller'
@@ -114,6 +115,18 @@ StellarObject >> orbitPosition [
 StellarObject >> orbitPosition: anObject [
 
 	orbitPosition := anObject
+]
+
+{ #category : 'accessing' }
+StellarObject >> orbiting [
+
+	^ orbiting
+]
+
+{ #category : 'accessing' }
+StellarObject >> orbiting: anObject [
+
+	orbiting := anObject
 ]
 
 { #category : 'accessing' }
