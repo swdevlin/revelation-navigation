@@ -225,15 +225,9 @@ Star >> initialize [
 ]
 
 { #category : 'testing' }
-Star >> isBrownDward [
-
-	#( 'BD' 'Y' 'T' 'L' ) includes: stellarType
-]
-
-{ #category : 'testing' }
 Star >> isBrownDwarf [
 
-	#( 'BD' 'Y' 'T' 'L' ) includes: stellarType
+	^ #( 'BD' 'Y' 'T' 'L' ) includes: stellarType
 ]
 
 { #category : 'testing' }
@@ -250,7 +244,7 @@ Star >> isHotter: aStar [
 { #category : 'testing' }
 Star >> isPostStellar [
 
-	#( 'D' 'BH' 'NS' 'PSR' ) includes: stellarType
+	^ (#( 'D' 'BH' 'NS' 'PSR' ) includes: stellarType)
 ]
 
 { #category : 'accessing' }
@@ -302,6 +296,12 @@ Star >> spectralClassification: sc [
 	stellarClass := sc spectralClass.
 	stellarType := sc spectralType.
 	subtype := sc subtype
+]
+
+{ #category : 'accessing' }
+Star >> stellarBodies [
+
+	^ stellarBodies
 ]
 
 { #category : 'accessing' }

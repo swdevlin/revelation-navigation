@@ -44,6 +44,24 @@ WorldBuildersHandbook class >> eccentricityTable [
 ]
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook class >> gasGiantQuantityTable [
+
+	^ RollTable new
+		  initializeWithDictionary: (Dictionary newFrom: {
+					   (4 -> 1).
+					   (5 -> 2).
+					   (6 -> 2).
+					   (7 -> 3).
+					   (8 -> 3).
+					   (9 -> 4).
+					   (10 -> 4).
+					   (11 -> 4).
+					   (12 -> 5).
+					   (13 -> 6) })
+		  named: 'GasGiantQuantity'
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook class >> inclinationTable [
 
 	^ RollTable new
@@ -100,8 +118,58 @@ WorldBuildersHandbook >> assignSpecialStarTypeTo: sc [
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignStarCharacteristicsTo: star orbiting: parent in: solarSystem [
 
-	self calculateEccentricityFor: star orbiting: parent in: solarSystem.
-	star inclination: self calculateInclination
+	| catalog |
+	catalog := StarCatalog new.
+	star
+		eccentricity:
+			(self
+				 calculateEccentricityFor: star
+				 orbiting: parent
+				 in: solarSystem);
+		inclination: self calculateInclination;
+		mass: (catalog
+				 massForType: star stellarType
+				 subtype: star subtype
+				 class: star stellarClass);
+		colour: (catalog colourForType: star spectralClass);
+		diameter: (catalog
+				 diameterForType: star spectralType
+				 subtype: star subtype
+				 class: star spectralClass);
+		temperature:
+			(catalog
+				 temperatureForType: star spectralType
+				 subtype: star subtype);
+		age: (self calculateAgeFor: star)
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> calculateAgeFor: star [
+
+	| age msl dice subGiantLifespan giantLifespan |
+	dice := DieRoller roller.
+
+	msl := 10 / (star mass raisedTo: 2.5).
+
+	(#( 'Ia' 'Ib' 'II' 'V' 'VI' ) includes: star stellarClass)
+		ifTrue: [
+			age := star mass > 0.9
+				       ifTrue: [ msl * (dice roll: 1 d: 100) / 100.0 ]
+				       ifFalse: [
+					       (dice roll: 1 d: 6) * 2 + ((dice roll: 1 d: 3) - 2)
+					       + ((dice roll: 1 d: 10) / 10.0) ].
+
+			star mass < 4.7 ifTrue: [ age := 0.01 max: age ] ]
+		ifFalse: [
+			subGiantLifespan := msl / (4 + star mass).
+			star stellarClass = 'IV'
+				ifTrue: [
+				age := msl + (subGiantLifespan * (dice roll: 1 d: 100) / 100.0) ]
+				ifFalse: [
+					giantLifespan := msl / (10 * (star mass raisedTo: 3)).
+					age := msl + subGiantLifespan
+					       + (giantLifespan * (dice roll: 1 d: 100) / 100.0) ] ].
+	^ age
 ]
 
 { #category : 'as yet unclassified' }
@@ -141,6 +209,24 @@ WorldBuildersHandbook >> createDefaultClassification [
 		spectralClass: 'V';
 		spectralType: (starTypeTable roll).
 	^ sc
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> gasGiantQuantityDMFor: aSolarSystem [
+
+	| dm |
+	dm := 0.
+
+	(aSolarSystem starCount = 1 and:
+		 aSolarSystem primary stellarClass = 'V') ifTrue: [ dm := dm + 1 ].
+
+	aSolarSystem primary isBrownDwarf ifTrue: [ dm := dm - 2 ].
+
+	aSolarSystem primary isPostStellar ifTrue: [ dm := dm - 2 ].
+
+	aSolarSystem starCount >= 4 ifTrue: [ dm := dm - 1 ].
+
+	^ dm
 ]
 
 { #category : 'generate star' }
@@ -299,6 +385,7 @@ WorldBuildersHandbook >> generatePrimaryStar [
 				 subtype: sc subtype
 				 class: sc spectralClass);
 		colour: (catalog colourForType: sc spectralType);
+		age: (self calculateAgeFor: star);
 		orbitPosition: 0 @ 0;
 		inclination: 0;
 		eccentricity: 0;
@@ -375,25 +462,25 @@ WorldBuildersHandbook >> generateSiblingFor: aStar [
 WorldBuildersHandbook >> generateSolarSystem [
 	" Generate a complete solar system"
 
-	| solarsystem star primary |
-	solarsystem := SolarSystem new.
+	| solarSystem star primary |
+	solarSystem := SolarSystem new.
 
 	primary := self generatePrimaryStar.
-	solarsystem primary: primary.
+	solarSystem primary: primary.
 
 	self hasCompanion ifTrue: [
-		star := self generateCompanionFor: primary in: solarsystem .
+		star := self generateCompanionFor: primary in: solarSystem .
 		primary companion: star ].
 
 	#( (0.5 @ 5.5) (5.5 @ 11.5) (11.5 @ 17) ) do: [ :orbitBand |
 		self hasSecondary ifTrue: [
 			star := self
 				        generateSecondaryFor: primary
-				        in: solarsystem
+				        in: solarSystem
 				        inBand: orbitBand.
-			solarsystem addStar: star ] ].
+			solarSystem addStar: star ] ].
 
-	^ solarsystem
+	^ solarSystem
 ]
 
 { #category : 'generate star' }
@@ -462,6 +549,17 @@ WorldBuildersHandbook >> nonSpecialStarTypeWithRoll: withRoll [
 
 	t == #Hot ifTrue: [ t := RollTable hotStarType roll ].
 	^ t
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> numberOfGasGiantsFor: aSolarSystem [
+
+	| r dice |
+	dice := DieRoller roller.
+	r := dice roll: 2 d: 6.
+	r <= 9
+		ifTrue: [ ^ self class gasGiantQuantityTable roll ]
+		ifFalse: [ ^ 0 ]
 ]
 
 { #category : 'as yet unclassified' }

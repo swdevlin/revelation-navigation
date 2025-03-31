@@ -67,3 +67,9 @@ SolarSystem >> sector: anObject [
 
 	sector := anObject
 ]
+
+{ #category : 'as yet unclassified' }
+SolarSystem >> starCount [
+
+	^ 1 + (primary stellarBodies count: [ :obj | obj isKindOf: Star ])
+]
