@@ -316,6 +316,39 @@ RollTable >> roll: aRoll [
 		ifFalse: [ ^ result ]
 ]
 
+{ #category : 'accessing' }
+RollTable >> roll: aRoll dm: dm [
+
+	| min max result |
+	lastRoll := aRoll.
+
+	min := self min.
+	max := self max.
+	(aRoll + dm between: min and: max)
+		ifTrue: [
+			result := table
+				          at: aRoll
+				          ifAbsent: [ Error signal: 'Roll not found in table' ] ]
+		ifFalse: [
+			aRoll + dm < min ifTrue: [ result := table at: min ].
+			aRoll + dm > max ifTrue: [ result := table at: max ] ].
+
+	result isBlock
+		ifTrue: [ ^ result value ]
+		ifFalse: [ ^ result ]
+]
+
+{ #category : 'as yet unclassified' }
+RollTable >> rollWithDM: dm [
+
+	| r dice |
+	dice := DieRoller roller .
+	r := dice roll: 2 d: 6.
+	mod := dm.
+	^ self roll: r
+
+]
+
 { #category : 'as yet unclassified' }
 RollTable >> subtract: value [
 
