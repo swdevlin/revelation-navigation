@@ -12,7 +12,8 @@ Class {
 		'companion',
 		'age',
 		'luminosity',
-		'stellarBodies'
+		'stellarBodies',
+		'isProtoStar'
 	],
 	#classVars : [
 		'brownDwarfLuminosity',
@@ -221,7 +222,8 @@ Star >> generateCompanionIfPresent [
 { #category : 'initialization' }
 Star >> initialize [
 
-	stellarBodies := OrderedCollection new
+	stellarBodies := OrderedCollection new.
+	isProtoStar := false.
 ]
 
 { #category : 'testing' }
@@ -245,6 +247,31 @@ Star >> isHotter: aStar [
 Star >> isPostStellar [
 
 	^ (#( 'D' 'BH' 'NS' 'PSR' ) includes: stellarType)
+]
+
+{ #category : 'testing' }
+Star >> isPrimordial [
+	"wbh 225"
+
+	(#( 'Ia' #'.' 'Ib' #'.' 'II' )
+		includes: (self stellarClass))
+		ifTrue: [ ^ true ]
+		ifFalse: [ "All stars of Class Ia, Ib and II and all O-type stars
+(except O subdwarf stars) are automatically hosts to
+primordial systems."
+			^ self stellarType = 'O' ]
+]
+
+{ #category : 'accessing' }
+Star >> isProtoStar [
+
+	^ isProtoStar
+]
+
+{ #category : 'accessing' }
+Star >> isProtoStar: anObject [
+
+	isProtoStar := anObject
 ]
 
 { #category : 'accessing' }
