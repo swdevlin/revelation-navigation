@@ -72,10 +72,12 @@ StarTest >> testCoolerType [
 { #category : 'tests' }
 StarTest >> testGenerateCompanionForStar [
 
-	| star companion wbh|
+	| star companion wbh solarSystem|
 	wbh := WorldBuildersHandbook new.
+	solarSystem := SolarSystem new.
 	star := Star newWithType: 'K' subtype: 5 class: 'V'.
- 	companion := wbh generateCompanionFor: star.
+	solarSystem primary: star.
+ 	companion := wbh generateCompanionFor: star in: solarSystem .
 	self assert: companion isNotNil.
 ]
 
@@ -156,11 +158,13 @@ StarTest >> testGenerateRandomFor [
 { #category : 'tests' }
 StarTest >> testGenerateSecondaryForStar [
 
-	| star companion wbh|
+	| star secondary wbh solarSystem |
 	wbh := WorldBuildersHandbook new.
+	solarSystem := SolarSystem new.
 	star := Star newWithType: 'K' subtype: 5 class: 'V'.
- 	companion := wbh generateSecondaryFor: star.
-	self assert: companion isNotNil.
+	solarSystem primary: star.
+ 	secondary := wbh generateSecondaryFor: solarSystem inBand: (2.5 @ 5.5).
+	self assert: secondary isNotNil.
 ]
 
 { #category : 'tests' }
@@ -258,6 +262,39 @@ StarTest >> testIsHotter [
 	self deny: (coolerStar isHotter: hotterStar).
 
 	
+]
+
+{ #category : 'tests' }
+StarTest >> testIsPrimordial [
+	"wbh 225"
+
+	| star |
+	star := Star new.
+	star stellarClass: 'Ia'.
+	self assert: star isPrimordial.
+
+	star := Star new.
+	star stellarClass: 'Ib'.
+	self assert: star isPrimordial.
+
+	star := Star new.
+	star stellarClass: 'II'.
+	self assert: star isPrimordial.
+
+
+	star := Star new.
+	star stellarType: 'O'.
+	self assert: star isPrimordial.
+
+	star := Star new.
+	star stellarClass: 'V'.
+	self deny: star isPrimordial
+	"
+All stars of Class Ia, Ib and II and all O-type stars
+(except O subdwarf stars) are automatically hosts to
+primordial systems.
+
+"
 ]
 
 { #category : 'tests' }

@@ -44,6 +44,17 @@ SolarSystem >> name: anObject [
 	name := anObject
 ]
 
+{ #category : 'as yet unclassified' }
+SolarSystem >> postStellarCount [
+
+	| c |
+	c := primary isPostStellar
+		     ifTrue: [ 1 ]
+		     ifFalse: [ 0 ].
+	^ c + (primary stellarBodies count: [ :obj |
+		   (obj isKindOf: Star) and: obj isPostStellar ])
+]
+
 { #category : 'accessing' }
 SolarSystem >> primary [
 
