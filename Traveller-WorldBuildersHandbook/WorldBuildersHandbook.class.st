@@ -81,6 +81,21 @@ WorldBuildersHandbook class >> inclinationTable [
 ]
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook class >> planetoidBeltQuantityTable [
+
+	^ RollTable new
+		  initializeWithDictionary: (Dictionary newFrom: {
+					   (6 -> 1).
+					   (7 -> 2).
+					   (8 -> 2).
+					   (9 -> 2).
+					   (10 -> 2).
+					   (11 -> 2).
+					   (12 -> 3) })
+		  named: 'PlanetoidBeltQuantity'
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignHotStarTypeTo: sc [
 
 	sc spectralType: RollTable hotStarType roll.
@@ -131,14 +146,14 @@ WorldBuildersHandbook >> assignStarCharacteristicsTo: star orbiting: parent in: 
 				 massForType: star stellarType
 				 subtype: star subtype
 				 class: star stellarClass);
-		colour: (catalog colourForType: star spectralClass);
+		colour: (catalog colourForType: star stellarType );
 		diameter: (catalog
-				 diameterForType: star spectralType
+				 diameterForType: star stellarType 
 				 subtype: star subtype
-				 class: star spectralClass);
+				 class: star stellarClass );
 		temperature:
 			(catalog
-				 temperatureForType: star spectralType
+				 temperatureForType: star stellarType 
 				 subtype: star subtype);
 		age: (self calculateAgeFor: star)
 ]
@@ -406,30 +421,31 @@ WorldBuildersHandbook >> generateRandomFor: primary [
 ]
 
 { #category : 'generate star' }
-WorldBuildersHandbook >> generateSecondaryFor: star in: solarSystem inBand: bandRange [
+WorldBuildersHandbook >> generateSecondaryFor: solarSystem inBand: bandRange [
 	" wbh: 29"
 
-	| result dm table secondary companion |
-	dm := (#( 'III' 'IV' ) includes: star stellarClass)
+	| primary result dm table secondary companion |
+	primary := solarSystem primary.
+	dm := (#( 'III' 'IV' ) includes: primary stellarClass)
 		      ifTrue: [ -1 ]
 		      ifFalse: [ 0 ].
 	table := RollTable secondaryStarDetermination.
 	table mod: dm.
 	result := table roll.
 
-	secondary := self generateStarFromNonPrimaryResult: result for: star.
+	secondary := self generateStarFromNonPrimaryResult: result for: primary.
 
 	secondary orbit:
 		(DieRoller roller floatBetween: bandRange x and: bandRange y).
 
 	secondary eccentricity: (self
 			 calculateEccentricityFor: secondary
-			 orbiting: star
+			 orbiting: primary
 			 in: solarSystem).
 
 	self hasCompanion ifTrue: [
 		companion := self generateCompanionFor: secondary in: solarSystem.
-		secondary companion: star ].
+		secondary companion: primary ].
 
 	^ secondary
 ]
@@ -475,8 +491,7 @@ WorldBuildersHandbook >> generateSolarSystem [
 	#( (0.5 @ 5.5) (5.5 @ 11.5) (11.5 @ 17) ) do: [ :orbitBand |
 		self hasSecondary ifTrue: [
 			star := self
-				        generateSecondaryFor: primary
-				        in: solarSystem
+				        generateSecondaryFor: solarSystem
 				        inBand: orbitBand.
 			solarSystem addStar: star ] ].
 
@@ -560,6 +575,20 @@ WorldBuildersHandbook >> numberOfGasGiantsFor: aSolarSystem [
 	r <= 9
 		ifTrue: [ ^ self class gasGiantQuantityTable roll ]
 		ifFalse: [ ^ 0 ]
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> planetoidBeltQuantityDMFor: aSolarSystem gasGiants: gasGiants [
+
+	| dm |
+	dm := 0.
+	gasGiants > 0 ifTrue: [ dm := dm + 1 ].
+	aSolarSystem primary isProtoStar ifTrue: [ dm := dm + 3 ].
+	aSolarSystem primary isPrimordial ifTrue: [ dm := dm + 2 ].
+	aSolarSystem primary isPostStellar ifTrue: [ dm := dm + 1 ].
+	aSolarSystem starCount >= 2 ifTrue: [ dm := dm + 1 ].
+	dm := dm + aSolarSystem postStellarCount.
+	^ dm
 ]
 
 { #category : 'as yet unclassified' }
