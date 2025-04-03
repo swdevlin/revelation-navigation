@@ -35,19 +35,6 @@ StarTest >> testAdditionalStarCheck [
 ]
 
 { #category : 'tests' }
-StarTest >> testAgeCalculatedOnce [
-
-	| star first second |
-	star := Star newWithType: 'K' subtype: 7 class: 'V'.
-
-	first := star age.	
-	second := star age.	
-
-	self assert: first equals: second.
-
-]
-
-{ #category : 'tests' }
 StarTest >> testCompanionCheck [
 
 	| star |
@@ -77,6 +64,7 @@ StarTest >> testGenerateCompanionForStar [
 	solarSystem := SolarSystem new.
 	star := Star newWithType: 'K' subtype: 5 class: 'V'.
 	solarSystem primary: star.
+	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
  	companion := wbh generateCompanionFor: star in: solarSystem .
 	self assert: companion isNotNil.
 ]
@@ -163,6 +151,7 @@ StarTest >> testGenerateSecondaryForStar [
 	solarSystem := SolarSystem new.
 	star := Star newWithType: 'K' subtype: 5 class: 'V'.
 	solarSystem primary: star.
+	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
  	secondary := wbh generateSecondaryFor: solarSystem inBand: (2.5 @ 5.5).
 	self assert: secondary isNotNil.
 ]
