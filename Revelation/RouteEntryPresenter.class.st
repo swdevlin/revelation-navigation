@@ -64,7 +64,7 @@ RouteEntryPresenter >> fetchSectors [
 	           sectors := revelationClient sectors.
 
 	           sectorNames := sectors collect: [ :sector |
-		                          sector at: 'name' ].
+		                          sector name ].
 	           sectorInput items: sectorNames ].
 
 	fetcher fork
@@ -136,13 +136,13 @@ RouteEntryPresenter >> sector [
 { #category : 'accessing' }
 RouteEntryPresenter >> sectorX [
 
-	^ selectedSector at: #x
+	^ selectedSector x
 ]
 
 { #category : 'accessing' }
 RouteEntryPresenter >> sectorY [
 
-	^ selectedSector at: #y
+	^ selectedSector y
 ]
 
 { #category : 'accessing' }

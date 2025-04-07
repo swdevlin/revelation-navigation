@@ -65,12 +65,12 @@ RevelationScanner >> fetchSystems [
 	| url jsonResponse s |
 	url := ZnUrl fromString:
 		       'https://radiofreewaba.net/deepnight/data/stars'.
-	url queryAt: #sx add: (selectedSector x).
-	url queryAt: #sy add: (selectedSector y).
+	url queryAt: #sx add: (selectedSector at: 'x').
+	url queryAt: #sy add: (selectedSector at: 'y').
 
 	jsonResponse := ZnClient new
-		                queryAt: #sx add: (selectedSector x);
-		                queryAt: #sy add: (selectedSector y);
+		                queryAt: #sx add: (selectedSector at: 'x');
+		                queryAt: #sy add: (selectedSector at: 'y');
 		                get: url.
 	s := STON fromString: jsonResponse contents.
 	systems := (s collect: [ :sector | sector ]) sorted: [ :a :b |
