@@ -40,7 +40,7 @@ WorldBuilderHandbookTest >> testAdjacentStars [
 { #category : 'tests' }
 WorldBuilderHandbookTest >> testAllowableOrbitsMultipleStars [
 
-	| star solarSystem primary orbits wbh expected secondary |
+	| solarSystem primary wbh expected secondary |
 	wbh := WorldBuildersHandbook new.
 	solarSystem := SolarSystem new.
 	primary := Star newWithType: 'F' subtype: 5 class: 'V'.
@@ -64,12 +64,12 @@ would be unavailable."
 		             inBand: (OrbitBand label: #near from: 5.5 to: 11.5).
 	secondary eccentricity: 0.15.
 	solarSystem addStar: secondary.
-	orbits := wbh availableOrbits: solarSystem.
+	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
 		            add: 0.03 @ (secondary orbit - 1);
 		            add: secondary orbit + 1 @ 20;
 		            yourself.
-	self assert: (orbits at: primary) equals: expected.
+	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
 
 	"6. If the eccentricity of any Close, Near or Far
 secondary star is greater than 0.2, add one more
@@ -80,12 +80,12 @@ than 0.2, then the range of Orbit#s greater than
 4.10 and less than 8.10 would be unavailable to
 the primary star."
 	secondary eccentricity: 0.25.
-	orbits := wbh availableOrbits: solarSystem.
+	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
 		            add: 0.03 @ (secondary orbit - 2);
 		            add: secondary orbit + 2 @ 20;
 		            yourself.
-	self assert: (orbits at: primary) equals: expected.
+	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
 
 
 	"7. If any Close or Near secondary star has an
@@ -98,21 +98,21 @@ Note that this additional condition does not apply
 to Far secondary stars."
 
 	secondary eccentricity: 0.56.
-	orbits := wbh availableOrbits: solarSystem.
+	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
 		            add: 0.03 @ (secondary orbit - 3);
 		            add: secondary orbit + 3 @ 20;
 		            yourself.
-	self assert: (orbits at: primary) equals: expected.
+	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
 
 
 	secondary orbit: 12.5.
-	orbits := wbh availableOrbits: solarSystem.
+	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
 		            add: 0.03 @ (secondary orbit - 2);
 		            add: secondary orbit + 2 @ 20;
 		            yourself.
-	self assert: (orbits at: primary) equals: expected
+	self assert: (primary ruleProperty: #availableOrbits) equals: expected
 ]
 
 { #category : 'tests' }
@@ -127,18 +127,18 @@ WorldBuilderHandbookTest >> testAllowableOrbitsOneStar [
 		assignStarCharacteristicsTo: primary
 		orbiting: nil
 		in: solarSystem.
-	orbits := wbh availableOrbits: solarSystem.
+	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
 		            add: 0.03 @ 20;
 		            yourself.
-	self assert: (orbits at: primary) equals: expected.
+	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
 	star := wbh generateCompanionFor: primary in: solarSystem.
 	primary companion: star.
-	orbits := wbh availableOrbits: solarSystem.
+	orbits := wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
 		            add: 0.5 + star eccentricity @ 20;
 		            yourself.
-	self assert: (orbits at: primary) equals: expected
+	self assert: (primary ruleProperty: #availableOrbits) equals: expected
 ]
 
 { #category : 'tests' }

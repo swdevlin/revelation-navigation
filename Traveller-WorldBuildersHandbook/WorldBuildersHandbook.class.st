@@ -73,6 +73,64 @@ WorldBuildersHandbook class >> subtypeInterpolate: vector lower: lower upper: up
 ]
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignAvailableOrbits: aSolarSystem [
+	"wbh: page 38"
+
+	aSolarSystem starCount = 1
+		ifTrue: [ self assignAvailableOrbitsForSingleStarSystem: aSolarSystem ]
+		ifFalse: [ self assignAvailableOrbitsForMultiStarSystem: aSolarSystem ]
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
+	"wbh: page 38"
+
+	| orbits mao primary minOrbit |
+	primary := aSolarSystem primary.
+	orbits := OrderedCollection new.
+	mao := self minimumAllowableOrbit: primary.
+
+	primary companion ifNotNil: [
+		mao := 0.5 + primary companion eccentricity ].
+	minOrbit := mao.
+	aSolarSystem secondaryStars do: [ :star |
+		| offset orbit ownOrbits |
+		offset := self starOrbitOffset: star.
+		orbit := star orbit.
+		orbits add: minOrbit @ (orbit - offset).
+		minOrbit := orbit + offset.
+		ownOrbits := self calculateSecondaryAvailableOrbits: star in: aSolarSystem .
+		ownOrbits := orbit - 3.
+		ownOrbits > 0 ifTrue: [
+			| starOrbits |
+			starOrbits := OrderedCollection new.
+			starOrbits add: (self minimumAllowableOrbit: primary) @ ownOrbits.
+			star ruleProperty: #availableOrbits value: starOrbits .
+			 ] ].
+	orbits add: minOrbit @ 20.
+	primary ruleProperty: #availableOrbits value: orbits 
+
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignAvailableOrbitsForSingleStarSystem: aSolarSystem [
+	"wbh: page 38"
+
+	| orbits mao primary |
+	primary := aSolarSystem primary.
+	orbits := OrderedCollection new.
+	mao := self
+		       interpolatedLookup: minimumAllowableOrbit
+		       type: primary stellarType
+		       subtype: primary subtype
+		       class: primary stellarClass.
+	primary companion ifNotNil: [
+		mao := 0.5 + primary companion eccentricity ].
+	orbits add: mao @ 20.
+	primary ruleProperty: #availableOrbits value: orbits
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignHotStarTypeTo: sc [
 
 	sc spectralType: HotStarTypeTable new roll.
@@ -143,68 +201,7 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 		                  gasGiants: gasGiants.
 	terrestrialPlanets := self numberOfTerrestrialPlanetsFor:
 		                      aSolarSystem.
-	availableOrbits := self availableOrbits: aSolarSystem
-]
-
-{ #category : 'as yet unclassified' }
-WorldBuildersHandbook >> availableOrbits: aSolarSystem [
-	"wbh: page 38"
-
-	aSolarSystem starCount = 1
-		ifTrue: [ ^ self availableOrbitsForSingleStarSystem: aSolarSystem ]
-		ifFalse: [ ^ self availableOrbitsForMultiStarSystem: aSolarSystem ]
-]
-
-{ #category : 'as yet unclassified' }
-WorldBuildersHandbook >> availableOrbitsForMultiStarSystem: aSolarSystem [
-	"wbh: page 38"
-
-	| availableOrbits orbits mao primary minOrbit |
-	availableOrbits := Dictionary new.
-	primary := aSolarSystem primary.
-	orbits := OrderedCollection new.
-	mao := self minimumAllowableOrbit: primary.
-
-	primary companion ifNotNil: [
-		mao := 0.5 + primary companion eccentricity ].
-	minOrbit := mao.
-	aSolarSystem secondaryStars do: [ :star |
-		| offset orbit ownOrbits |
-		offset := self starOrbitOffset: star.
-		orbit := star orbit.
-		orbits add: minOrbit @ (orbit - offset).
-		minOrbit := orbit + offset.
-		ownOrbits := self calculateSecondaryAvailableOrbits: star in: aSolarSystem .
-		ownOrbits := orbit - 3.
-		ownOrbits > 0 ifTrue: [
-			| starOrbits |
-			starOrbits := OrderedCollection new.
-			starOrbits add: (self minimumAllowableOrbit: primary) @ ownOrbits.
-			availableOrbits at: star put: starOrbits ] ].
-	orbits add: minOrbit @ 20.
-	availableOrbits at: primary put: orbits.
-
-	^ availableOrbits
-]
-
-{ #category : 'as yet unclassified' }
-WorldBuildersHandbook >> availableOrbitsForSingleStarSystem: aSolarSystem [
-	"wbh: page 38"
-
-	| orbits mao primary |
-	primary := aSolarSystem primary.
-	orbits := OrderedCollection new.
-	mao := self
-		       interpolatedLookup: minimumAllowableOrbit
-		       type: primary stellarType
-		       subtype: primary subtype
-		       class: primary stellarClass.
-	primary companion ifNotNil: [
-		mao := 0.5 + primary companion eccentricity ].
-	orbits add: mao @ 20.
-	^ Dictionary new
-		  at: primary put: orbits;
-		  yourself
+	availableOrbits := self assignAvailableOrbits: aSolarSystem
 ]
 
 { #category : 'as yet unclassified' }
@@ -588,6 +585,8 @@ WorldBuildersHandbook >> generateSolarSystem [
 		self hasSecondary ifTrue: [
 			star := self generateSecondaryFor: solarSystem inBand: orbitBand.
 			solarSystem addStar: star ] ].
+
+	self assignAvailableOrbits: solarSystem.
 
 	self assignStellarObjects: solarSystem.
 

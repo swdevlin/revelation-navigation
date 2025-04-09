@@ -15,7 +15,8 @@ Class {
 		'period',
 		'temperature',
 		'mass',
-		'orbiting'
+		'orbiting',
+		'ruleProperties'
 	],
 	#category : 'Traveller',
 	#package : 'Traveller'
@@ -67,6 +68,13 @@ StellarObject >> inclination [
 StellarObject >> inclination: anObject [
 
 	inclination := anObject
+]
+
+{ #category : 'initialization' }
+StellarObject >> initialize [
+
+	super initialize.
+	ruleProperties := Dictionary new
 ]
 
 { #category : 'accessing' }
@@ -139,6 +147,18 @@ StellarObject >> period [
 StellarObject >> period: anObject [
 
 	period := anObject
+]
+
+{ #category : 'as yet unclassified' }
+StellarObject >> ruleProperty: aName [
+
+	^ ruleProperties at: aName ifAbsent: [ nil ]
+]
+
+{ #category : 'as yet unclassified' }
+StellarObject >> ruleProperty: aName value: aValue [
+
+	ruleProperties at: aName put: aValue
 ]
 
 { #category : 'accessing' }

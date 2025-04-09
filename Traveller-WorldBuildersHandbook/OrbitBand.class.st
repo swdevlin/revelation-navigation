@@ -25,7 +25,7 @@ OrbitBand class >> label: aSymbol from: min to: max [
 { #category : 'testing' }
 OrbitBand >> includes: anOrbit [
 
-	^ anOrbit between: min and: max
+	^ anOrbit >= min and: [ anOrbit < max ]
 ]
 
 { #category : 'accessing' }
