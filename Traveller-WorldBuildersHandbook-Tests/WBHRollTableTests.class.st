@@ -55,14 +55,17 @@ WBHRollTableTests >> testGasGiantQuantityTable [
 
 	star := Star new.
 	star stellarType: 'K'.
+	star orbit: 1.
 	solarSystem addStar: star.
 
 	star := Star new.
 	star stellarType: 'K'.
+	star orbit: 2.
 	solarSystem addStar: star.
 
 	star := Star new.
 	star stellarType: 'K'.
+	star orbit: 3.
 	solarSystem addStar: star.
 
 	table solarSystem: solarSystem.

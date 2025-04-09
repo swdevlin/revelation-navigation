@@ -193,8 +193,10 @@ Star >> generateCompanionIfPresent [
 { #category : 'initialization' }
 Star >> initialize [
 
-	stellarBodies := SortedCollection sortBlock: [:a :b | a orbit < b orbit].
+	stellarBodies := SortedCollection sortBlock: [ :a :b |
+		                 a orbit < b orbit ].
 	isProtoStar := false.
+	orbit := 0
 ]
 
 { #category : 'testing' }

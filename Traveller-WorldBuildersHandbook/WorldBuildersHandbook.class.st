@@ -625,8 +625,10 @@ WorldBuildersHandbook >> hasAdjacentStarIn: aSolarSystem for: aStar [
 
 	(self closeOrbitBand includes: aStar orbit) ifTrue: [
 		^ self band: self nearOrbitBand HasStarIn: aSolarSystem ].
+
 	(self farOrbitBand includes: aStar orbit) ifTrue: [
 		^ self band: self nearOrbitBand HasStarIn: aSolarSystem ].
+
 	(self nearOrbitBand includes: aStar orbit) ifTrue: [
 		^ (self band: self closeOrbitBand HasStarIn: aSolarSystem) or:
 			  (self band: self farOrbitBand HasStarIn: aSolarSystem) ].

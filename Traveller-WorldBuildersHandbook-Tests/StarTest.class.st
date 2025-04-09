@@ -152,7 +152,7 @@ StarTest >> testGenerateSecondaryForStar [
 	star := Star newWithType: 'K' subtype: 5 class: 'V'.
 	solarSystem primary: star.
 	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
- 	secondary := wbh generateSecondaryFor: solarSystem inBand: (2.5 @ 5.5).
+ 	secondary := wbh generateSecondaryFor: solarSystem inBand: wbh closeOrbitBand.
 	self assert: secondary isNotNil.
 ]
 
