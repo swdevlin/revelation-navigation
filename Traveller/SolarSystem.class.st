@@ -32,6 +32,11 @@ SolarSystem >> coordinates: anObject [
 	coordinates := anObject
 ]
 
+{ #category : 'testing' }
+SolarSystem >> hasAdjacentStar: aStar [ 
+	self shouldBeImplemented.
+]
+
 { #category : 'accessing' }
 SolarSystem >> name [
 
@@ -65,6 +70,12 @@ SolarSystem >> primary [
 SolarSystem >> primary: anObject [
 
 	primary := anObject
+]
+
+{ #category : 'as yet unclassified' }
+SolarSystem >> secondaryStars [
+
+	^ primary stellarBodies select: [ :obj | obj isKindOf: Star ]
 ]
 
 { #category : 'accessing' }

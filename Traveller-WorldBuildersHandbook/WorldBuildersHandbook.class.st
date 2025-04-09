@@ -150,21 +150,79 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 WorldBuildersHandbook >> availableOrbits: aSolarSystem [
 	"wbh: page 38"
 
+	aSolarSystem starCount = 1
+		ifTrue: [ ^ self availableOrbitsForSingleStarSystem: aSolarSystem ]
+		ifFalse: [ ^ self availableOrbitsForMultiStarSystem: aSolarSystem ]
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> availableOrbitsForMultiStarSystem: aSolarSystem [
+	"wbh: page 38"
+
+	| availableOrbits orbits mao primary minOrbit |
+	availableOrbits := Dictionary new.
+	primary := aSolarSystem primary.
+	orbits := OrderedCollection new.
+	mao := self minimumAllowableOrbit: primary.
+
+	primary companion ifNotNil: [
+		mao := 0.5 + primary companion eccentricity ].
+	minOrbit := mao.
+	aSolarSystem secondaryStars do: [ :star |
+		| offset orbit ownOrbits |
+		offset := self starOrbitOffset: star.
+		orbit := star orbit.
+		orbits add: minOrbit @ (orbit - offset).
+		minOrbit := orbit + offset.
+		ownOrbits := self calculateSecondaryAvailableOrbits: star in: aSolarSystem .
+		ownOrbits := orbit - 3.
+		ownOrbits > 0 ifTrue: [
+			| starOrbits |
+			starOrbits := OrderedCollection new.
+			starOrbits add: (self minimumAllowableOrbit: primary) @ ownOrbits.
+			availableOrbits at: star put: starOrbits ] ].
+	orbits add: minOrbit @ 20.
+	availableOrbits at: primary put: orbits.
+
+	^ availableOrbits
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> availableOrbitsForSingleStarSystem: aSolarSystem [
+	"wbh: page 38"
+
 	| orbits mao primary |
 	primary := aSolarSystem primary.
 	orbits := OrderedCollection new.
-	aSolarSystem starCount = 1
-		ifTrue: [
-			mao := self
-				       interpolatedLookup: minimumAllowableOrbit
-				       type: primary stellarType
-				       subtype: primary subtype
-				       class: primary stellarClass.
-			primary companion ifNotNil: [
-				mao := 0.5 + primary companion eccentricity ].
-			orbits add: mao @ 20 ]
-		ifFalse: [  ].
-	^ orbits
+	mao := self
+		       interpolatedLookup: minimumAllowableOrbit
+		       type: primary stellarType
+		       subtype: primary subtype
+		       class: primary stellarClass.
+	primary companion ifNotNil: [
+		mao := 0.5 + primary companion eccentricity ].
+	orbits add: mao @ 20.
+	^ Dictionary new
+		  at: primary put: orbits;
+		  yourself
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> band: orbitBand HasStarIn: aSolarSystem [
+
+	^ aSolarSystem secondaryStars anySatisfy: [ :star |
+		  | orbit |
+		  orbit := star orbit.
+		  orbitBand includes: orbit ]
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> bandFor: aStar [
+
+	(self closeOrbitBand includes: aStar orbit) ifTrue: [ ^ #close ].
+	(self nearOrbitBand includes: aStar orbit) ifTrue: [ ^ #near ].
+	(self farOrbitBand includes: aStar orbit) ifTrue: [ ^ #far ].
+	^ nil
 ]
 
 { #category : 'as yet unclassified' }
@@ -216,6 +274,35 @@ WorldBuildersHandbook >> calculateInclination [
 ]
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook >> calculateSecondaryAvailableOrbits: aStar in: aSolarSystem [
+
+	| maxOrbit orbits mao adjacentStars |
+	orbits := OrderedCollection new.
+	maxOrbit := aStar orbit - 3.
+	(self hasAdjacentStarIn: aSolarSystem for: aStar) ifTrue: [
+		maxOrbit := maxOrbit - 1 ].
+	mao := self minimumAllowableOrbit: aStar.
+
+	adjacentStars := self starsAdjacentTo: aStar in: aSolarSystem.
+
+	(adjacentStars anySatisfy: [ :star | star eccentricity > 0.2 ])
+		ifTrue: [ maxOrbit := maxOrbit - 1 ].
+
+	(adjacentStars anySatisfy: [ :star | star eccentricity > 0.5 ])
+		ifTrue: [ maxOrbit := maxOrbit - 1 ].
+
+	maxOrbit > mao ifTrue: [ orbits add: mao @ maxOrbit ].
+
+	^ orbits
+]
+
+{ #category : 'orbit bans' }
+WorldBuildersHandbook >> closeOrbitBand [
+
+	^ OrbitBand label: #close from: 0.5 to: 5.5
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook >> colourForType: type [
 
 	^ colours at: type
@@ -241,6 +328,12 @@ WorldBuildersHandbook >> diameterForType: type subtype: subtype class: class [
 		  type: type
 		  subtype: subtype
 		  class: class
+]
+
+{ #category : 'orbit bans' }
+WorldBuildersHandbook >> farOrbitBand [
+
+	^ OrbitBand label: #far from: 11.5 to: 17
 ]
 
 { #category : 'generate star' }
@@ -410,13 +503,11 @@ WorldBuildersHandbook >> generateSecondaryFor: star in: solarSystem inBand: band
 		      ifTrue: [ -1 ]
 		      ifFalse: [ 0 ].
 	table := SecondaryStarDeterminationTable new.
-	table mod: dm.
-	result := table roll.
+	result := table rollwithDM: dm.
 
 	secondary := self generateStarFromNonPrimaryResult: result for: star.
 
-	secondary orbit:
-		(DieRoller roller floatBetween: bandRange x and: bandRange y).
+	secondary orbit: bandRange random.
 
 	self assignStarCharacteristicsTo: secondary orbiting: star in: solarSystem .
 
@@ -438,8 +529,7 @@ WorldBuildersHandbook >> generateSecondaryFor: solarSystem inBand: bandRange [
 
 	secondary := self generateStarFromNonPrimaryResult: result for: star.
 
-	secondary orbit:
-		(DieRoller roller floatBetween: bandRange x and: bandRange y).
+	secondary orbit: bandRange random.
 
 	secondary eccentricity: (self
 			 calculateEccentricityFor: secondary
@@ -492,9 +582,9 @@ WorldBuildersHandbook >> generateSolarSystem [
 		primary companion: star ].
 
 	{
-		(0.5 @ 5.5).
-		(5.5 @ 11.5).
-		(11.5 @ 17) } do: [ :orbitBand |
+		self closeOrbitBand .
+		self nearOrbitBand .
+		self farOrbitBand } do: [ :orbitBand |
 		self hasSecondary ifTrue: [
 			star := self generateSecondaryFor: solarSystem inBand: orbitBand.
 			solarSystem addStar: star ] ].
@@ -528,6 +618,20 @@ WorldBuildersHandbook >> generateTwinFor: aStar [
 		  newWithType: aStar stellarType
 		  subtype: aStar subtype
 		  class: aStar stellarClass
+]
+
+{ #category : 'testing' }
+WorldBuildersHandbook >> hasAdjacentStarIn: aSolarSystem for: aStar [
+
+	(self closeOrbitBand includes: aStar orbit) ifTrue: [
+		^ self band: self nearOrbitBand HasStarIn: aSolarSystem ].
+	(self farOrbitBand includes: aStar orbit) ifTrue: [
+		^ self band: self nearOrbitBand HasStarIn: aSolarSystem ].
+	(self nearOrbitBand includes: aStar orbit) ifTrue: [
+		^ (self band: self closeOrbitBand HasStarIn: aSolarSystem) or:
+			  (self band: self farOrbitBand HasStarIn: aSolarSystem) ].
+
+	^ false
 ]
 
 { #category : 'testing' }
@@ -678,6 +782,22 @@ WorldBuildersHandbook >> massForType: type subtype: subtype class: class [
 		  class: class
 ]
 
+{ #category : 'accessing' }
+WorldBuildersHandbook >> minimumAllowableOrbit: aStar [
+
+	^ self
+		  interpolatedLookup: minimumAllowableOrbit
+		  type: aStar stellarType
+		  subtype: aStar subtype
+		  class: aStar stellarClass
+]
+
+{ #category : 'orbit bans' }
+WorldBuildersHandbook >> nearOrbitBand [
+
+	^ OrbitBand label: #near from: 5.5 to: 11.5
+]
+
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> nonSpecialStarType [
 
@@ -765,6 +885,36 @@ WorldBuildersHandbook >> primaryStarClassification [
 			 stellarClass: sc spectralClass).
 
 	^ sc
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> starOrbitOffset: star [
+	"wbh: page 38"
+
+	| offset |
+	offset := star eccentricity <= 0.2
+		          ifTrue: [ 1 ]
+		          ifFalse: [ 2 ].
+	(self farOrbitBand includes: star orbit) ifFalse: [
+		star eccentricity > 0.5 ifTrue: [ offset := offset + 1 ] ].
+	^ offset
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> starsAdjacentTo: aStar in: aSolarSystem [
+
+	| bandMap starBand |
+	bandMap := Dictionary newFrom: {
+			           (#close -> 0).
+			           (#near -> 1).
+			           (#far -> 2) }.
+	starBand := bandMap at: (self bandFor: aStar).
+
+	^ (aSolarSystem secondaryStars select: [ :star | star ~= aStar ])
+		  select: [ :star |
+			  | i |
+			  i := bandMap at: (self bandFor: star).
+			  (starBand - i) abs <= 1 ]
 ]
 
 { #category : 'as yet unclassified' }
