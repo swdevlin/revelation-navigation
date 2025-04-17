@@ -142,6 +142,181 @@ WorldBuilderHandbookTest >> testAllowableOrbitsOneStar [
 ]
 
 { #category : 'tests' }
+WorldBuilderHandbookTest >> testAssignStarOrbitCharacteristics [
+
+	| primary wbh |
+	wbh := WorldBuildersHandbook new.
+	primary := wbh generatePrimaryStar.
+	wbh assignStarOrbitCharacteristicsTo: primary.
+	self deny: (primary ruleProperty: #hzco) equals: nil
+]
+
+{ #category : 'tests' }
+WorldBuilderHandbookTest >> testBaselineNumber [
+
+	| wbh worlds dice star |
+	dice := DieRoller roller.
+
+	wbh := WorldBuildersHandbook new.
+	worlds := 9.
+
+	star := Star new
+		        stellarType: 'K';
+		        subtype: 5;
+		        stellarClass: 'V';
+		        yourself.
+
+	dice
+		queueD: 6 value: 1;
+		queueD: 6 value: 1.
+	self
+		assert: (wbh baselineNumberFor: star totalWorlds: worlds)
+		equals: -1.
+
+	dice
+		queueD: 6 value: 3;
+		queueD: 6 value: 3.
+	self assert: (wbh baselineNumberFor: star totalWorlds: 12) equals: 4
+
+]
+
+{ #category : 'tests' }
+WorldBuilderHandbookTest >> testBaselineOrbitNumber [
+
+	| bon wbh worlds dice star |
+	dice := DieRoller roller.
+	dice clearQueue.
+	dice
+		queueD: 6 value: 3;
+		queueD: 6 value: 3.
+
+	wbh := WorldBuildersHandbook new.
+	worlds := 9.
+
+	" has mao of 0.05"
+	star := Star new
+		        stellarType: 'A';
+		        subtype: 5;
+		        stellarClass: 'V';
+		        yourself.
+
+	star ruleProperty: #hzco value: 3.
+	star ruleProperty: #baselineNumber value: 4.
+
+	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
+	self assert: bon equals: 3 + (6 - 7 / 10).
+
+
+	star := Star new
+		        stellarType: 'K';
+		        subtype: 5;
+		        stellarClass: 'V';
+		        yourself. "mao of 0.02"
+
+
+	"Step 3B - baseline number < 1"
+	"minimum orbit < 1"
+	dice
+		queueD: 6 value: 1;
+		queueD: 6 value: 1;
+		queueD: 6 value: 3;
+		queueD: 6 value: 3.
+	star ruleProperty: #hzco value: 1.2.
+	star
+		ruleProperty: #baselineNumber
+		value: (wbh baselineNumberFor: star totalWorlds: worlds).
+
+	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
+	self assert: bon equals: 0.02 - (-1 / 10) + (4 / 100).
+
+	"Step 3B - baseline number < 1"
+	"minimum orbit >= 1"
+	star := Star new
+		        stellarType: 'A';
+		        subtype: 5;
+		        stellarClass: 'II';
+		        yourself. "mao of 1.17"
+
+	dice
+		clearQueue;
+		queueD: 6 value: 3;
+		queueD: 6 value: 3.
+	star ruleProperty: #hzco value: 1.2.
+	star ruleProperty: #baselineNumber value: 0.9.
+
+	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
+	self
+		assert: bon
+		equals: 1.2 - (star ruleProperty: #baselineNumber) + worlds + 0.4.
+
+
+	"Step 3C - baseline number > worlds"
+	"hzco - baseline + worlds >= 1"
+	star
+		stellarType: 'A';
+		stellarClass: 'III';
+		subtype: 0.
+	dice
+		clearQueue;
+		queueD: 6 value: 3;
+		queueD: 6 value: 3.
+	star ruleProperty: #hzco value: 7.5.
+	star ruleProperty: #baselineNumber value: 6.
+	worlds := 4.
+	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
+	self assert: bon equals: 7.5 - 6 + worlds - 0.2.
+	
+
+	"Step 3C - baseline number > worlds"
+	"hzco - baseline + worlds < 1"
+	star
+		stellarType: 'A';
+		stellarClass: 'III';
+		subtype: 0.
+	dice
+		clearQueue;
+		queueD: 6 value: 3;
+		queueD: 6 value: 3.
+	star ruleProperty: #hzco value: 2.5.
+	star ruleProperty: #baselineNumber value: 6.
+	worlds := 2.
+	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
+	self assert: bon equals: 2.5 - ((6 + worlds - 0.2)/10)
+]
+
+{ #category : 'tests' }
+WorldBuilderHandbookTest >> testSpread [
+
+	| wbh star |
+	wbh := WorldBuildersHandbook new.
+	star := Star new.
+	star
+		ruleProperty: #baselineOrbitNumber value: 3;
+		ruleProperty: #mao value: 0.1;
+		ruleProperty: #baselineNumber value: 2.
+
+	self assert: (wbh spreadFor: star worlds: 1) equals: 2.9 / 2.
+	
+"baselineNumber less than 1 treated as 1"
+	star
+		ruleProperty: #baselineOrbitNumber value: 3;
+		ruleProperty: #mao value: 0.1;
+		ruleProperty: #baselineNumber value: 0.5.
+
+	self assert: (wbh spreadFor: star worlds: 1) equals: 2.9.
+
+	
+"outermost orbit cannot exceed 20"
+	star
+		ruleProperty: #baselineOrbitNumber value: 3;
+		ruleProperty: #mao value: 0.1;
+		ruleProperty: #baselineNumber value: 0.5.
+
+	self assert: (wbh spreadFor: star worlds: 10) equals: 2.9.
+
+]
+
+{ #category : 'tests' }
 WorldBuilderHandbookTest >> testSubtypeInterpolate [
 
 	| v l u subtype result expected |

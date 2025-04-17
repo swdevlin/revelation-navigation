@@ -38,6 +38,21 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook class >> auToOrbit: au [
+
+	| orbitAUs i |
+	orbitAUs := #( 0 0.4 0.7 1.0 1.6 2.8 5.2 10 20 40 77 154 308 615 1230 2500
+	          4900 9800 19500 39500 78700 ).
+
+	au < 0 ifTrue: [ ^ 0 ].
+	au >= 78700 ifTrue: [ ^ 20 ].
+
+	1 to: orbitAUs size - 1 do: [ :i |
+		au <= (orbitAUs at: i + 1) ifTrue: [
+			^ i - 1 + (au - (orbitAUs at: i) / ((orbitAUs at: i + 1) - (orbitAUs at: i))) ] ]
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook class >> planetoidBeltQuantityTable [
 
 	^ RollTable new
@@ -77,8 +92,11 @@ WorldBuildersHandbook >> assignAvailableOrbits: aSolarSystem [
 	"wbh: page 38"
 
 	aSolarSystem starCount = 1
-		ifTrue: [ self assignAvailableOrbitsForSingleStarSystem: aSolarSystem ]
-		ifFalse: [ self assignAvailableOrbitsForMultiStarSystem: aSolarSystem ]
+		ifTrue: [
+		self assignAvailableOrbitsForSingleStarSystem: aSolarSystem ]
+		ifFalse: [
+		self assignAvailableOrbitsForMultiStarSystem: aSolarSystem ].
+
 ]
 
 { #category : 'as yet unclassified' }
@@ -192,15 +210,45 @@ WorldBuildersHandbook >> assignStarCharacteristicsTo: star orbiting: parent in: 
 ]
 
 { #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignStarOrbitCharacteristicsTo: star in: aSolarSystem withTotalWorlds: worlds [
+
+	star ruleProperty: #mao value: (self minimumAllowableOrbit: star).
+
+	star
+		ruleProperty: #hzco
+		value: (self class auToOrbit: star luminosity sqrt).
+
+	star
+		ruleProperty: #baselineNumber
+		value: (self baselineNumberFor: star totalWorlds: worlds).
+
+	star
+		ruleProperty: #baselineOrbitNumber
+		value: (self baselineOrbitNumberFor: star worlds: worlds).
+
+	star
+		ruleProperty: #spread
+		value: (self spreadFor: star worlds: worlds)
+]
+
+{ #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 
 	| gasGiants planetoidBelts terrestrialPlanets availableOrbits |
+	" Determine the number of orbiting bodies "
 	gasGiants := self numberOfGasGiantsFor: aSolarSystem.
 	planetoidBelts := self
 		                  numberOfPlanetoidBeltsFor: aSolarSystem
 		                  gasGiants: gasGiants.
 	terrestrialPlanets := self numberOfTerrestrialPlanetsFor:
 		                      aSolarSystem.
+
+	" Determine the star's orbit characteristics: hzco, baselineNumber, spread and ... "
+	self
+		assignStarOrbitCharacteristicsTo: aSolarSystem primary
+		in: aSolarSystem
+		withTotalWorlds: gasGiants + planetoidBelts + terrestrialPlanets.
+
 	availableOrbits := self assignAvailableOrbits: aSolarSystem
 ]
 
@@ -220,6 +268,66 @@ WorldBuildersHandbook >> bandFor: aStar [
 	(self nearOrbitBand includes: aStar orbit) ifTrue: [ ^ #near ].
 	(self farOrbitBand includes: aStar orbit) ifTrue: [ ^ #far ].
 	^ nil
+]
+
+{ #category : 'baselines' }
+WorldBuildersHandbook >> baselineNumberFor: aStar totalWorlds: worlds [
+
+	| b |
+
+	b := DieRoller roller roll: 2 d: 6.
+
+	aStar companion ifNotNil: [ b := b - 2 ].
+	aStar isPostStellar ifTrue: [ b := b - 2 ].
+
+	(#( Ia Ib II ) includes: aStar stellarClass) ifTrue: [ b := b + 3 ].
+	aStar stellarClass = 'III' ifTrue: [ b := b + 2 ].
+	aStar stellarClass = 'IV' ifTrue: [ b := b + 1 ].
+	aStar stellarClass = 'VI' ifTrue: [ b := b - 1 ].
+
+	worlds < 6 ifTrue: [ b := b - 4 ].
+	(worlds between: 6 and: 9) ifTrue: [ b := b - 3 ].
+	(worlds between: 10 and: 12) ifTrue: [ b := b - 2 ].
+	(worlds between: 13 and: 15) ifTrue: [ b := b - 1 ].
+	(worlds between: 18 and: 20) ifTrue: [ b := b + 1 ].
+	worlds > 20 ifTrue: [ b := b + 2 ].
+
+	^ b
+]
+
+{ #category : 'baselines' }
+WorldBuildersHandbook >> baselineOrbitNumberFor: aStar worlds: worlds [
+
+	| hzco dice factor baselineNumber mao |
+	mao := self minimumAllowableOrbit: aStar.
+
+	hzco := aStar ruleProperty: #hzco.
+	dice := DieRoller roller.
+	baselineNumber := aStar ruleProperty: #baselineNumber.
+
+	(baselineNumber between: 1 and: worlds) ifTrue: [
+		factor := hzco >= 1
+			          ifTrue: [ 10 ]
+			          ifFalse: [ 100 ].
+		^ hzco + ((dice roll: 2 d: 6) - 7 / factor) ].
+
+	baselineNumber < 1
+		ifTrue: [
+			| offset r |
+			r := dice roll: 2 d: 6.
+			offset := mao > 1
+				          ifTrue: [
+				          ^ hzco - baselineNumber + worlds + (r - 2 / 10) ]
+				          ifFalse: [
+				          ^ mao - (baselineNumber / 10) + (r - 2 / 100) ] ]
+		ifFalse: [
+			hzco - baselineNumber + worlds >= 1.0
+				ifTrue: [
+				^ hzco - baselineNumber + worlds + ((dice roll: 2 d: 6) - 7 / 5) ]
+				ifFalse: [
+					^ hzco
+					  -
+					  (baselineNumber + worlds + ((dice roll: 2 d: 6) - 7 / 5) / 10) ] ]
 ]
 
 { #category : 'as yet unclassified' }
@@ -711,6 +819,7 @@ WorldBuildersHandbook >> initialize [
 	                 #( 100000 26000 8800 720 nil 0.0029 0.00072 )
 	                 #( 90000 19000 7300 1200 nil 0.00029 0.00019 ) ).
 
+	"WBH: page 39"
 	minimumAllowableOrbit := #( #( 0.63 0.60 0.55 0.53 nil 0.5 0.01 )
 	                            #( 0.55 0.50 0.45 0.38 nil 0.3 0.01 )
 	                            #( 0.50 0.35 0.30 0.25 0.20 0.18 0.01 )
@@ -886,6 +995,16 @@ WorldBuildersHandbook >> primaryStarClassification [
 			 stellarClass: sc spectralClass).
 
 	^ sc
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> spreadFor: aStar worlds: worlds [
+
+	| baselineNumber |
+	baselineNumber := (aStar ruleProperty: #baselineNumber) max: 1.
+
+	^ (aStar ruleProperty: #baselineOrbitNumber)
+	  - (aStar ruleProperty: #mao) / baselineNumber
 ]
 
 { #category : 'as yet unclassified' }
