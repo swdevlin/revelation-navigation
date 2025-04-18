@@ -134,9 +134,8 @@ WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
 WorldBuildersHandbook >> assignAvailableOrbitsForSingleStarSystem: aSolarSystem [
 	"wbh: page 38"
 
-	| orbits mao primary |
+	| mao primary |
 	primary := aSolarSystem primary.
-	orbits := OrderedCollection new.
 	mao := self
 		       interpolatedLookup: minimumAllowableOrbit
 		       type: primary stellarType
@@ -144,8 +143,7 @@ WorldBuildersHandbook >> assignAvailableOrbitsForSingleStarSystem: aSolarSystem 
 		       class: primary stellarClass.
 	primary companion ifNotNil: [
 		mao := 0.5 + primary companion eccentricity ].
-	orbits add: mao @ 20.
-	primary ruleProperty: #availableOrbits value: orbits
+	primary addAvailableOrbitsFrom: mao to: 20
 ]
 
 { #category : 'as yet unclassified' }
@@ -206,7 +204,8 @@ WorldBuildersHandbook >> assignStarCharacteristicsTo: star orbiting: parent in: 
 			(self temperatureForType: star stellarType subtype: star subtype);
 		age: (self calculateAgeFor: star);
 		orbitPosition: 0 @ 0;
-		inclination: 0
+		inclination: 0;
+		mao: (self minimumAllowableOrbit: star)
 ]
 
 { #category : 'as yet unclassified' }
@@ -477,7 +476,7 @@ WorldBuildersHandbook >> generateLesserFor: aStar [
 	stellarType = 'BD'
 		ifTrue: [ ^ self generateNewBrownDwarf ]
 		ifFalse: [
-			^ Star
+			^ WBHStar
 				  newWithType: stellarType
 				  subtype: subtype
 				  class: aStar stellarClass ]
@@ -492,22 +491,22 @@ WorldBuildersHandbook >> generateNewBrownDwarf [
 	mass := (dice roll: 1 d: 6) / 100.0
 	        + ((dice roll: 4 d: 6) - 1 / 1000).
 
-	typeAndSubtypeTuple := Star brownDwarfTypeAndSubtypeFromMass: mass.
+	typeAndSubtypeTuple := WBHStar brownDwarfTypeAndSubtypeFromMass: mass.
 	type := typeAndSubtypeTuple at: 1.
 	subtype := typeAndSubtypeTuple at: 2.
 
-	lower := (Star brownDwarfTypes indexOf: type) * 2 - 1.
+	lower := (WBHStar brownDwarfTypes indexOf: type) * 2 - 1.
 	subtype >= 5 ifTrue: [ lower := lower + 1 ].
 	upper := lower + 1.
 
 	temperature := self class
-		               subtypeInterpolate: Star brownDwarfTemperature
+		               subtypeInterpolate: WBHStar brownDwarfTemperature
 		               lower: lower
 		               upper: upper
 		               subtype: subtype.
 
 	luminosity := self class 
-		              subtypeInterpolate: Star brownDwarfLuminosity
+		              subtypeInterpolate: WBHStar brownDwarfLuminosity
 		              lower: lower
 		              upper: upper
 		              subtype: subtype.
@@ -530,7 +529,7 @@ WorldBuildersHandbook >> generateNewBrownDwarf [
 
 	type = 'Y' ifTrue: [ diameter := 0.1 ].
 
-	^ Star new
+	^ WBHStar new
 		  stellarType: type;
 		  subtype: subtype;
 		  mass: mass;
@@ -555,7 +554,7 @@ WorldBuildersHandbook >> generateNewWhiteDwarf [
 	finalAge := 10 / (mass raisedTo: 2.5)
 	            * (1 + (1 / (4 + mass) + (1 / (mass raisedTo: 3 * 10)))).
 
-	^ Star new
+	^ WBHStar new
 		  stellarType: 'D';
 		  mass: mass;
 		  age: age;
@@ -578,7 +577,7 @@ WorldBuildersHandbook >> generatePrimaryStar [
 	| star sc |
 	sc := self primaryStarClassification.
 
-	star := Star new.
+	star := WBHStar new.
 	star
 		spectralClassification: sc;
 		orbit: 0.
@@ -669,7 +668,7 @@ WorldBuildersHandbook >> generateSiblingFor: aStar [
 					s := r + s \\ 10 ] ]
 		ifFalse: [ s := s + r ].
 
-	^ Star newWithType: t subtype: s class: c
+	^ WBHStar newWithType: t subtype: s class: c
 ]
 
 { #category : 'as yet unclassified' }
@@ -677,7 +676,7 @@ WorldBuildersHandbook >> generateSolarSystem [
 	" Generate a complete solar system"
 
 	| solarSystem star primary |
-	solarSystem := SolarSystem new.
+	solarSystem := WBHSolarSystem new.
 
 	primary := self generatePrimaryStar.
 	solarSystem primary: primary.
@@ -721,7 +720,7 @@ WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
 { #category : 'generate star' }
 WorldBuildersHandbook >> generateTwinFor: aStar [
 
-	^ Star
+	^ WBHStar
 		  newWithType: aStar stellarType
 		  subtype: aStar subtype
 		  class: aStar stellarClass

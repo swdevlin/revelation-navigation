@@ -15,8 +15,7 @@ Class {
 		'period',
 		'temperature',
 		'mass',
-		'orbiting',
-		'ruleProperties'
+		'orbiting'
 	],
 	#category : 'Traveller',
 	#package : 'Traveller'
@@ -147,18 +146,6 @@ StellarObject >> period [
 StellarObject >> period: anObject [
 
 	period := anObject
-]
-
-{ #category : 'as yet unclassified' }
-StellarObject >> ruleProperty: aName [
-
-	^ ruleProperties at: aName ifAbsent: [ nil ]
-]
-
-{ #category : 'as yet unclassified' }
-StellarObject >> ruleProperty: aName value: aValue [
-
-	ruleProperties at: aName put: aValue
 ]
 
 { #category : 'accessing' }
