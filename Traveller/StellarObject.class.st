@@ -73,7 +73,7 @@ StellarObject >> inclination: anObject [
 StellarObject >> initialize [
 
 	super initialize.
-	ruleProperties := Dictionary new
+
 ]
 
 { #category : 'accessing' }

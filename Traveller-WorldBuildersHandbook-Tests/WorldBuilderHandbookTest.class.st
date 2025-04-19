@@ -42,8 +42,8 @@ WorldBuilderHandbookTest >> testAllowableOrbitsMultipleStars [
 
 	| solarSystem primary wbh expected secondary |
 	wbh := WorldBuildersHandbook new.
-	solarSystem := SolarSystem new.
-	primary := Star newWithType: 'F' subtype: 5 class: 'V'.
+	solarSystem := WBHSolarSystem new.
+	primary := WBHStar newWithType: 'F' subtype: 5 class: 'V'.
 	solarSystem primary: primary.
 	wbh
 		assignStarCharacteristicsTo: primary
@@ -69,7 +69,7 @@ would be unavailable."
 		            add: 0.03 @ (secondary orbit - 1);
 		            add: secondary orbit + 1 @ 20;
 		            yourself.
-	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
+	self assert: (primary availableOrbits) equals: expected.
 
 	"6. If the eccentricity of any Close, Near or Far
 secondary star is greater than 0.2, add one more
@@ -85,7 +85,7 @@ the primary star."
 		            add: 0.03 @ (secondary orbit - 2);
 		            add: secondary orbit + 2 @ 20;
 		            yourself.
-	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
+	self assert: (primary availableOrbits) equals: expected.
 
 
 	"7. If any Close or Near secondary star has an
@@ -103,7 +103,7 @@ to Far secondary stars."
 		            add: 0.03 @ (secondary orbit - 3);
 		            add: secondary orbit + 3 @ 20;
 		            yourself.
-	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
+	self assert: (primary availableOrbits) equals: expected.
 
 
 	secondary orbit: 12.5.
@@ -112,7 +112,7 @@ to Far secondary stars."
 		            add: 0.03 @ (secondary orbit - 2);
 		            add: secondary orbit + 2 @ 20;
 		            yourself.
-	self assert: (primary ruleProperty: #availableOrbits) equals: expected
+	self assert: (primary availableOrbits) equals: expected
 ]
 
 { #category : 'tests' }

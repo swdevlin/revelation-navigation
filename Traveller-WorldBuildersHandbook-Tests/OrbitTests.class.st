@@ -25,10 +25,10 @@ OrbitTests >> testBands [
 { #category : 'tests' }
 OrbitTests >> testSecondaryOrbits [
 
-	| star close near far solarSystem primary orbits wbh expected |
+	| close near solarSystem primary orbits wbh expected |
 	wbh := WorldBuildersHandbook new.
-	solarSystem := SolarSystem new.
-	primary := Star newWithType: 'F' subtype: 5 class: 'V'.
+	solarSystem := WBHSolarSystem new.
+	primary := WBHStar newWithType: 'F' subtype: 5 class: 'V'.
 	solarSystem primary: primary.
 	wbh
 		assignStarCharacteristicsTo: primary

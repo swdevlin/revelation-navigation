@@ -10,9 +10,9 @@ StellarObjectsTest >> testNumberOfGasGiants [
 
 	| c star wbh solarSystem |
 	
-	solarSystem := SolarSystem new.
+	solarSystem := WBHSolarSystem new.
 	wbh := WorldBuildersHandbook new.
-	star := Star newWithType: 'G' subtype: 0 class: 'IV'.
+	star := WBHStar newWithType: 'G' subtype: 0 class: 'IV'.
 	solarSystem primary: star.
 	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
 

@@ -86,7 +86,17 @@ WBHStar class >> brownDwarfTypes [
 { #category : 'adding' }
 WBHStar >> addAvailableOrbitsFrom: min to: max [
 
-	availableOrbits add: min @ max
+	availableOrbits add: (min to: max)
+]
+
+{ #category : 'adding' }
+WBHStar >> addStellarBody: aStellarBody [
+
+	aStellarBody ifNotNil: [
+		aStellarBody orbit: self nextOrbit.
+		aStellarBody orbiting: self.
+		stellarBodies add: aStellarBody ].
+	self gotoNextOrbit
 ]
 
 { #category : 'accessing' }
@@ -111,6 +121,19 @@ WBHStar >> baselineOrbitNumber [
 WBHStar >> baselineOrbitNumber: anObject [
 
 	baselineOrbitNumber := anObject
+]
+
+{ #category : 'as yet unclassified' }
+WBHStar >> gotoNextOrbit [
+
+	| currentBand |
+	currentBand := availableOrbits at: 1.
+	(currentBand rangeIncludes: currentBand first + spread)
+		ifTrue: [
+			availableOrbits
+				at: 1
+				put: (currentBand first + spread to: currentBand last) ]
+		ifFalse: [ availableOrbits removeAt: 1 ]
 ]
 
 { #category : 'accessing' }
@@ -144,6 +167,12 @@ WBHStar >> mao: anObject [
 	mao := anObject
 ]
 
+{ #category : 'as yet unclassified' }
+WBHStar >> nextOrbit [
+
+	^ (availableOrbits at: 1) first
+]
+
 { #category : 'accessing' }
 WBHStar >> spread [
 
@@ -154,4 +183,10 @@ WBHStar >> spread [
 WBHStar >> spread: anObject [
 
 	spread := anObject
+]
+
+{ #category : 'accessing' }
+WBHStar >> totalAvailableOrbits [
+
+	^ availableOrbits inject: 0 into: [ :sum :range | sum + range size ]
 ]

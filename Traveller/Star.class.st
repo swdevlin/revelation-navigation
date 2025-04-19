@@ -115,14 +115,6 @@ Star >> coolerType [
 		ifFalse: [ ^ self class typeOrder at: i + 1 ]
 ]
 
-{ #category : 'as yet unclassified' }
-Star >> generateCompanionIfPresent [
-
-	self multipleStarCheck ifTrue: [
-		companion := Star generateCompanionStarFor: self ].
-	^ self companion
-]
-
 { #category : 'initialization' }
 Star >> initialize [
 

@@ -87,7 +87,7 @@ WorldBuildersHandbook class >> subtypeInterpolate: vector lower: lower upper: up
 	^ lowerValue + (factor * (upperValue - lowerValue))
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'orbits' }
 WorldBuildersHandbook >> assignAvailableOrbits: aSolarSystem [
 	"wbh: page 38"
 
@@ -99,14 +99,13 @@ WorldBuildersHandbook >> assignAvailableOrbits: aSolarSystem [
 
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'orbits' }
 WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
 	"wbh: page 38"
 
-	| orbits mao primary minOrbit |
+	| mao primary minOrbit minAvailableOrbit |
 	primary := aSolarSystem primary.
-	orbits := OrderedCollection new.
-	mao := self minimumAllowableOrbit: primary.
+	mao := primary mao.
 
 	primary companion ifNotNil: [
 		mao := 0.5 + primary companion eccentricity ].
@@ -115,32 +114,29 @@ WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
 		| offset orbit ownOrbits |
 		offset := self starOrbitOffset: star.
 		orbit := star orbit.
-		orbits add: minOrbit @ (orbit - offset).
+		primary addAvailableOrbitsFrom: minOrbit to: orbit - offset.
 		minOrbit := orbit + offset.
-		ownOrbits := self calculateSecondaryAvailableOrbits: star in: aSolarSystem .
+		ownOrbits := self
+			             calculateSecondaryAvailableOrbits: star
+			             in: aSolarSystem.
 		ownOrbits := orbit - 3.
-		ownOrbits > 0 ifTrue: [
-			| starOrbits |
-			starOrbits := OrderedCollection new.
-			starOrbits add: (self minimumAllowableOrbit: primary) @ ownOrbits.
-			star ruleProperty: #availableOrbits value: starOrbits .
-			 ] ].
-	orbits add: minOrbit @ 20.
-	primary ruleProperty: #availableOrbits value: orbits 
-
+		minAvailableOrbit := star companion
+			                     ifNil: [ star mao ]
+			                     ifNotNil: [
+			                     star mao + 0.5 + star companion eccentricity ].
+		ownOrbits > minAvailableOrbit ifTrue: [
+			star addAvailableOrbitsFrom: minAvailableOrbit to: ownOrbits ] ].
+	minOrbit < 20 ifTrue: [
+		primary addAvailableOrbitsFrom: minOrbit to: 20 ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'orbits' }
 WorldBuildersHandbook >> assignAvailableOrbitsForSingleStarSystem: aSolarSystem [
 	"wbh: page 38"
 
 	| mao primary |
 	primary := aSolarSystem primary.
-	mao := self
-		       interpolatedLookup: minimumAllowableOrbit
-		       type: primary stellarType
-		       subtype: primary subtype
-		       class: primary stellarClass.
+	mao := primary mao.
 	primary companion ifNotNil: [
 		mao := 0.5 + primary companion eccentricity ].
 	primary addAvailableOrbitsFrom: mao to: 20
@@ -169,8 +165,10 @@ WorldBuildersHandbook >> assignSpecialStarTypeTo: sc [
 
 	sc spectralClass == 'IV' ifTrue: [
 		type == 'M' ifTrue: [
-			| r |
-			r := 5 + RollTable starType lastRoll.
+			| r dice |
+			dice := DieRoller roller.
+			r := dice roll: 2 d: 6.
+			r < 7 ifTrue: [ r := r + 5 ].
 			type := self nonSpecialStarTypeWithRoll: r.
 			type == 'O' ifTrue: [ type := 'B' ] ] ].
 
@@ -205,50 +203,74 @@ WorldBuildersHandbook >> assignStarCharacteristicsTo: star orbiting: parent in: 
 		age: (self calculateAgeFor: star);
 		orbitPosition: 0 @ 0;
 		inclination: 0;
-		mao: (self minimumAllowableOrbit: star)
+		mao: (self minimumAllowableOrbit: star);
+		hzco: (self class auToOrbit: star luminosity sqrt)
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'orbits' }
 WorldBuildersHandbook >> assignStarOrbitCharacteristicsTo: star in: aSolarSystem withTotalWorlds: worlds [
 
-	star ruleProperty: #mao value: (self minimumAllowableOrbit: star).
+	star baselineNumber: (self baselineNumberFor: star totalWorlds: worlds).
 
-	star
-		ruleProperty: #hzco
-		value: (self class auToOrbit: star luminosity sqrt).
+	star baselineOrbitNumber: (self baselineOrbitNumberFor: star worlds: worlds).
 
-	star
-		ruleProperty: #baselineNumber
-		value: (self baselineNumberFor: star totalWorlds: worlds).
-
-	star
-		ruleProperty: #baselineOrbitNumber
-		value: (self baselineOrbitNumberFor: star worlds: worlds).
-
-	star
-		ruleProperty: #spread
-		value: (self spreadFor: star worlds: worlds)
+	star spread: (self spreadFor: star worlds: worlds)
 ]
 
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 
-	| gasGiants planetoidBelts terrestrialPlanets availableOrbits |
-	" Determine the number of orbiting bodies "
+	| stars distribution stellarBodies gasGiants planetoidBelts terrestrialPlanets emptyOrbits dice totalOrbits r |
+	"Determine the number of orbiting bodies"
+	stellarBodies := OrderedCollection new.
 	gasGiants := self numberOfGasGiantsFor: aSolarSystem.
 	planetoidBelts := self
 		                  numberOfPlanetoidBeltsFor: aSolarSystem
 		                  gasGiants: gasGiants.
 	terrestrialPlanets := self numberOfTerrestrialPlanetsFor:
 		                      aSolarSystem.
+	dice := DieRoller roller.
+	r := dice roll: 2 d: 6.
+	emptyOrbits := r > 9
+		               ifTrue: [ r - 9 ]
+		               ifFalse: [ 0 ].
 
-	" Determine the star's orbit characteristics: hzco, baselineNumber, spread and ... "
-	self
-		assignStarOrbitCharacteristicsTo: aSolarSystem primary
-		in: aSolarSystem
-		withTotalWorlds: gasGiants + planetoidBelts + terrestrialPlanets.
+	"Create a random list of stellar bodies to add to the solar system"
+	1 to: gasGiants do: [ :i |
+	stellarBodies add: [ WBHGasGiant new ] ].
+	1 to: planetoidBelts do: [ :i |
+	stellarBodies add: [ WBHPlanetoidBelt new ] ].
+	1 to: terrestrialPlanets do: [ :i |
+	stellarBodies add: [ WBHTerrestrialPlanet new ] ].
+	1 to: emptyOrbits do: [ :i | stellarBodies add: [ nil ] ].
 
-	availableOrbits := self assignAvailableOrbits: aSolarSystem
+	stellarBodies shuffle.
+
+
+	"Distribute the objects across all starts that have orbits"
+	stars := aSolarSystem stars.
+
+	distribution := Dictionary new.
+	stars do: [ :star | distribution at: star put: OrderedCollection new ].
+	totalOrbits := aSolarSystem totalAvailableOrbits.
+	stellarBodies do: [ :body |
+		| pick cumulative chosenStar |
+		pick := dice floatBetween: 0 and: totalOrbits.
+		cumulative := 0.
+		chosenStar := stars detect: [ :st |
+			              cumulative := cumulative + st totalAvailableOrbits.
+			              cumulative >= pick ].
+		(distribution at: chosenStar) add: body ].
+
+	"Figure out the orbital mechanics and then assign the bodies orbiting each star"
+	stars do: [ :star |
+		self
+			assignStarOrbitCharacteristicsTo: star
+			in: aSolarSystem
+			withTotalWorlds: (distribution at: star) size.
+
+		(distribution at: star) do: [ :stellarBody |
+			star addStellarBody: stellarBody value ] ]
 ]
 
 { #category : 'as yet unclassified' }
@@ -269,7 +291,7 @@ WorldBuildersHandbook >> bandFor: aStar [
 	^ nil
 ]
 
-{ #category : 'baselines' }
+{ #category : 'orbits' }
 WorldBuildersHandbook >> baselineNumberFor: aStar totalWorlds: worlds [
 
 	| b |
@@ -294,15 +316,15 @@ WorldBuildersHandbook >> baselineNumberFor: aStar totalWorlds: worlds [
 	^ b
 ]
 
-{ #category : 'baselines' }
+{ #category : 'orbits' }
 WorldBuildersHandbook >> baselineOrbitNumberFor: aStar worlds: worlds [
 
 	| hzco dice factor baselineNumber mao |
-	mao := self minimumAllowableOrbit: aStar.
+	mao := aStar mao.
 
-	hzco := aStar ruleProperty: #hzco.
+	hzco := aStar hzco.
 	dice := DieRoller roller.
-	baselineNumber := aStar ruleProperty: #baselineNumber.
+	baselineNumber := aStar baselineNumber.
 
 	(baselineNumber between: 1 and: worlds) ifTrue: [
 		factor := hzco >= 1
@@ -400,7 +422,7 @@ WorldBuildersHandbook >> calculateSecondaryAvailableOrbits: aStar in: aSolarSyst
 	^ orbits
 ]
 
-{ #category : 'orbit bans' }
+{ #category : 'orbit bands' }
 WorldBuildersHandbook >> closeOrbitBand [
 
 	^ OrbitBand label: #close from: 0.5 to: 5.5
@@ -434,13 +456,13 @@ WorldBuildersHandbook >> diameterForType: type subtype: subtype class: class [
 		  class: class
 ]
 
-{ #category : 'orbit bans' }
+{ #category : 'orbit bands' }
 WorldBuildersHandbook >> farOrbitBand [
 
 	^ OrbitBand label: #far from: 11.5 to: 17
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateCompanionFor: star in: solarsystem [
 	" wbh: 29"
 
@@ -458,7 +480,7 @@ WorldBuildersHandbook >> generateCompanionFor: star in: solarsystem [
 	^ companion
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateLesserFor: aStar [
 
 	| stellarType subtype |
@@ -482,7 +504,7 @@ WorldBuildersHandbook >> generateLesserFor: aStar [
 				  class: aStar stellarClass ]
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateNewBrownDwarf [
 	"WBH: 226"
 
@@ -539,7 +561,7 @@ WorldBuildersHandbook >> generateNewBrownDwarf [
 		  yourself
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateNewWhiteDwarf [
 	"WBH: 30, 227"
 
@@ -563,7 +585,7 @@ WorldBuildersHandbook >> generateNewWhiteDwarf [
 		  yourself
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateOtherStar [
 
 	(DieRoller roller roll: 2 d: 6) < 8
@@ -571,7 +593,18 @@ WorldBuildersHandbook >> generateOtherStar [
 		ifFalse: [ ^ self generateNewBrownDwarf ]
 ]
 
-{ #category : 'generate star' }
+{ #category : 'stellar body generation' }
+WorldBuildersHandbook >> generatePlanetoidBeltOrbiting: star [
+
+	| dice span |
+	dice := DieRoller roller.
+	span := star spread * (dice roll: 2 d: 6) / 10.
+	^ WBHPlanetoidBelt new
+		  span: span;
+		  yourself
+]
+
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generatePrimaryStar [
 
 	| star sc |
@@ -587,18 +620,19 @@ WorldBuildersHandbook >> generatePrimaryStar [
 	^ star
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateRandomFor: primary [
 	"wbh: 29"
 
 	| star |
 	star := self generatePrimaryStar.
+
 	(star isHotter: primary)
 		ifTrue: [ ^ self generateLesserFor: primary ]
 		ifFalse: [ ^ star ]
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateSecondaryFor: star in: solarSystem inBand: bandRange [
 	" wbh: 29"
 
@@ -622,7 +656,7 @@ WorldBuildersHandbook >> generateSecondaryFor: star in: solarSystem inBand: band
 	^ secondary
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateSecondaryFor: solarSystem inBand: bandRange [
 	" wbh: 29"
 
@@ -644,10 +678,12 @@ WorldBuildersHandbook >> generateSecondaryFor: solarSystem inBand: bandRange [
 		companion := self generateCompanionFor: secondary in: solarSystem.
 		secondary companion: star ].
 
+	self assignStarCharacteristicsTo: secondary orbiting: star in: solarSystem.
+
 	^ secondary
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateSiblingFor: aStar [
 
 	| t s c r roller |
@@ -697,10 +733,12 @@ WorldBuildersHandbook >> generateSolarSystem [
 
 	self assignStellarObjects: solarSystem.
 
+	self developStellarObjects: solarSystem.
+
 	^ solarSystem
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
 
 	| messageMap |
@@ -717,7 +755,7 @@ WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
 		  Error signal: 'Unexpected non-primary type: ' , result asString ]) value
 ]
 
-{ #category : 'generate star' }
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateTwinFor: aStar [
 
 	^ WBHStar
@@ -766,12 +804,15 @@ WorldBuildersHandbook >> initialize [
 			           ('F' -> 'Yellow White').
 			           ('G' -> 'Yellow').
 			           ('K' -> 'Light Orange').
-			           ('M' -> 'Orange Red') }.
+			           ('M' -> 'Orange Red') .
+			           ('D' -> 'White') .
+			}.
 
 	classOrder := #( 'Ia' 'Ib' 'II' 'III' 'IV' 'V' 'VI' ).
 
 	typeOrder := #( 'O' 'B' 'A' 'F' 'G' 'K' 'M' ).
 
+	"WBH 17"
 	massData := #( #( 200 150 130 110 nil 90 2 )
 	               #( 80 60 40 30 nil 60 1.5 )
 	               #( 60 40 30 20 20 18 0.5 ) #( 30 25 20 10 10 5 0.4 )
@@ -788,6 +829,7 @@ WorldBuildersHandbook >> initialize [
 	temperatures := #( 50000 40000 30000 15000 10000 8000 7500 6500 6000
 	                   5600 5200 4400 3700 3000 2400 ).
 
+	"WBH 19"
 	diameters := #( #( 25 24 22 21 nil 20 0.18 )
 	                #( 22 20 18 15 nil 12 0.18 )
 	                #( 20 14 12 10 8 7 0.2 ) #( 60 25 14 6 5 3.5 0.5 )
@@ -801,6 +843,7 @@ WorldBuildersHandbook >> initialize [
 	                #( 1200 600 350 100 nil 0.2 0.1 )
 	                #( 1800 800 500 200 nil 0.1 0.08 ) ).
 
+	"WBH 19"
 	luminosity := #( #( 3400000 3200000 2700000 2400000 nil 2200000
 	                    180 )
 	                 #( 1100000 900000 730000 510000 nil 330000 73 )
@@ -882,13 +925,19 @@ WorldBuildersHandbook >> luminosityForType: type subtype: subtype class: class [
 
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> massForType: type subtype: subtype class: class [
-	"TODO : handle brown dwarfs, white dwarfs and post stellar objects"
+	"TODO : handle brown dwarfs and post stellar objects"
 
-	^ self
-		  interpolatedLookup: massData
-		  type: type
-		  subtype: subtype
-		  class: class
+	| dice |
+	dice := DieRoller roller.
+	type = 'D'
+		ifTrue: [
+		^ (dice roll: 2 d: 6) - 1 / 10 + ((dice roll: 1 d: 10) / 100) ]
+		ifFalse: [
+			^ self
+				  interpolatedLookup: massData
+				  type: type
+				  subtype: subtype
+				  class: class ]
 ]
 
 { #category : 'accessing' }
@@ -901,7 +950,7 @@ WorldBuildersHandbook >> minimumAllowableOrbit: aStar [
 		  class: aStar stellarClass
 ]
 
-{ #category : 'orbit bans' }
+{ #category : 'orbit bands' }
 WorldBuildersHandbook >> nearOrbitBand [
 
 	^ OrbitBand label: #near from: 5.5 to: 11.5
@@ -975,7 +1024,7 @@ WorldBuildersHandbook >> numberOfTerrestrialPlanetsFor: solarSystem [
 WorldBuildersHandbook >> primaryStarClassification [
 	"wbh: 14
 		
-	Randomly generate the spectral classification  of the primary star"
+	Randomly generate the spectral classification of the primary star"
 
 	| sc table |
 	table := StarSubtypeTable new.
@@ -1000,13 +1049,13 @@ WorldBuildersHandbook >> primaryStarClassification [
 WorldBuildersHandbook >> spreadFor: aStar worlds: worlds [
 
 	| baselineNumber |
-	baselineNumber := (aStar ruleProperty: #baselineNumber) max: 1.
+	baselineNumber := (aStar baselineNumber) max: 1.
 
-	^ (aStar ruleProperty: #baselineOrbitNumber)
-	  - (aStar ruleProperty: #mao) / baselineNumber
+	^ (aStar baselineOrbitNumber)
+	  - (aStar mao) / baselineNumber
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'orbits' }
 WorldBuildersHandbook >> starOrbitOffset: star [
 	"wbh: page 38"
 

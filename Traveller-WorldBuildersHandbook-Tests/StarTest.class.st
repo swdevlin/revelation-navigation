@@ -61,8 +61,8 @@ StarTest >> testGenerateCompanionForStar [
 
 	| star companion wbh solarSystem|
 	wbh := WorldBuildersHandbook new.
-	solarSystem := SolarSystem new.
-	star := Star newWithType: 'K' subtype: 5 class: 'V'.
+	solarSystem := WBHSolarSystem new.
+	star := WBHStar newWithType: 'K' subtype: 5 class: 'V'.
 	solarSystem primary: star.
 	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
  	companion := wbh generateCompanionFor: star in: solarSystem .
@@ -148,8 +148,8 @@ StarTest >> testGenerateSecondaryForStar [
 
 	| star secondary wbh solarSystem |
 	wbh := WorldBuildersHandbook new.
-	solarSystem := SolarSystem new.
-	star := Star newWithType: 'K' subtype: 5 class: 'V'.
+	solarSystem := WBHSolarSystem new.
+	star := WBHStar newWithType: 'K' subtype: 5 class: 'V'.
 	solarSystem primary: star.
 	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
  	secondary := wbh generateSecondaryFor: solarSystem inBand: wbh closeOrbitBand.
@@ -359,7 +359,7 @@ StarTest >> testOtherNonPrimary [
 	roller queueD: 6 value: 5.
 	roller queueD: 6 value: 4.
 	star := wbh generateOtherStar.
-	self assert: (Star brownDwarfTypes includes: star stellarType)
+	self assert: (WBHStar brownDwarfTypes includes: star stellarType)
 ]
 
 { #category : 'tests' }
@@ -390,26 +390,26 @@ StarTest >> testWhiteDwarfTemperatureMassAdjusted [
 { #category : 'tests' }
 StarTest >> testbrownDwarfTypeAndSubtypeFromMass [
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.08) equals: {'L' . 0}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.08) equals: {'L' . 0}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.076) equals: {'L' . 1}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.076) equals: {'L' . 1}.
 	
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.072) equals: {'L' . 2}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.072) equals: {'L' . 2}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.06) equals: {'L' . 5}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.06) equals: {'L' . 5}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.058) equals: {'L' . 6}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.058) equals: {'L' . 6}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.05) equals: {'T' . 0}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.05) equals: {'T' . 0}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.04) equals: {'T' . 5}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.04) equals: {'T' . 5}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.037) equals: {'T' . 6}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.037) equals: {'T' . 6}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.013) equals: {'Y' . 5}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.013) equals: {'Y' . 5}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.013) equals: {'Y' . 5}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.013) equals: {'Y' . 5}.
 
-	self assert: (Star brownDwarfTypeAndSubtypeFromMass: 0.0082) equals: {'Y' . 7}.
+	self assert: (WBHStar brownDwarfTypeAndSubtypeFromMass: 0.0082) equals: {'Y' . 7}.
 
 ]
