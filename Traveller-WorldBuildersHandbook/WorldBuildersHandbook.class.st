@@ -142,10 +142,83 @@ WorldBuildersHandbook >> assignAvailableOrbitsForSingleStarSystem: aSolarSystem 
 	primary addAvailableOrbitsFrom: mao to: 20
 ]
 
+{ #category : 'planetoid belt' }
+WorldBuildersHandbook >> assignBeltSignificantBodies: aPlanetoidBelt [
+
+	| dice dm hzco bodies |
+	dice := DieRoller roller.
+
+	hzco := aPlanetoidBelt orbiting hzco.
+	dm := 0.
+	aPlanetoidBelt orbit > (aPlanetoidBelt orbiting hzco + 3) ifTrue: [
+		dm := dm + 2 ].
+	aPlanetoidBelt span < 0.1 ifTrue: [ dm := dm - 4 ].
+	aPlanetoidBelt size1Bodies:
+		(dice roll: 2 d: 6 - 12 + aPlanetoidBelt bulk + dm).
+
+	dm := 1.
+	((hzco + 2 to: hzco + 3) includes: aPlanetoidBelt orbit) ifTrue: [
+		dm := dm + 1 ].
+	hzco + 3 < aPlanetoidBelt orbit ifTrue: [ dm := dm + 3 ].
+	aPlanetoidBelt span > 1 ifTrue: [ dm := dm + 1 ].
+
+	bodies := dice roll: 2 d: 6 - 10 + (dm * (aPlanetoidBelt bulk + 1)).
+	aPlanetoidBelt span < 0.1 ifTrue: [ bodies := bodies / 2 ceiling ].
+	aPlanetoidBelt sizeSBodies: bodies
+]
+
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignHotStarTypeTo: sc [
 
 	sc spectralType: HotStarTypeTable new roll.
+
+]
+
+{ #category : 'planetoid belt' }
+WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
+
+	| star span dice dm composition table total |
+	dice := DieRoller roller.
+	aPlanetoidBelt size: 0.
+	star := aPlanetoidBelt orbiting.
+	dm := 0.
+	(star stellarObject: aPlanetoidBelt hasAdjacent: GasGiant) ifTrue: [
+		dm := dm - 1 ].
+	(star isLastStellarObject: aPlanetoidBelt) ifTrue: [ dm := dm + 3 ].
+
+	span := star spread * ((dice roll: 2 d: 6) + dm) / 10.
+	aPlanetoidBelt span: span.
+
+	table := PlanetoidBeltCompositionTable new.
+	dm := 0.
+	aPlanetoidBelt orbit < star hzco ifTrue: [ dm := dm - 4 ].
+	aPlanetoidBelt orbit > 2 + star hzco ifTrue: [ dm := dm + 4 ].
+
+	composition := table rollwithDM: dm.
+
+	total := composition values
+		         inject: 0
+		         into: [ :sum :percent | sum + percent ].
+	total > 100 ifTrue: [
+		composition
+			at: #mPercentage
+			put: ((composition at: #mPercentage) - (total - 100) max: 0) ].
+
+	total := composition values
+		         inject: 0
+		         into: [ :sum :percent | sum + percent ].
+	total > 100 ifTrue: [
+		composition
+			at: #sPercentage
+			put: ((composition at: #sPercentage) - (total - 100) max: 0) ].
+
+	aPlanetoidBelt mPercentage: (composition at: #mPercentage).
+	aPlanetoidBelt cPercentage: (composition at: #cPercentage).
+	aPlanetoidBelt sPercentage: (composition at: #sPercentage).
+
+	aPlanetoidBelt bulk: (self planetoidBeltBulk: aPlanetoidBelt).
+	
+	aPlanetoidBelt resourceRating: (self planetoidBeltResourceRating: aPlanetoidBelt).
 
 ]
 
@@ -444,6 +517,24 @@ WorldBuildersHandbook >> createDefaultClassification [
 		spectralClass: 'V';
 		spectralType: (table roll).
 	^ sc
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> developStellarObjects: aSolarSystem [
+
+	| mapper |
+	mapper := Dictionary new
+		          at: WBHGasGiant put: #assignGasGiantCharacteristics:;
+		          at: WBHTerrestrialPlanet
+		          put: #assignTerrestrialPlanetCharacteristics:;
+		          at: WBHPlanetoidBelt
+		          put: #assignPlanetoidBeltCharacteristics:;
+		          yourself.
+	"    ^self perform: selector with: aBody."
+
+	aSolarSystem stars do: [ :star |
+		star stellarBodies do: [ :stellarBody |
+			self perform: (mapper at: stellarBody class) with: stellarBody ] ]
 ]
 
 { #category : 'as yet unclassified' }
@@ -1018,6 +1109,27 @@ WorldBuildersHandbook >> numberOfTerrestrialPlanetsFor: solarSystem [
 	c < 3
 		ifTrue: [ ^ (dice roll: 1 d: 3) + 2 ]
 		ifFalse: [ ^ c + (dice roll: 1 d: 3) - 1 ]
+]
+
+{ #category : 'planetoid belt' }
+WorldBuildersHandbook >> planetoidBeltBulk: aPlanetoidBelt [
+
+	| dice bulk solarSystem |
+	dice := DieRoller roller.
+	bulk := dice roll: 2 d: 2.
+	solarSystem := aPlanetoidBelt orbiting solarSystem.
+	^ bulk - (solarSystem age / 2 floor)
+	  + (aPlanetoidBelt cPercentage / 10 floor)
+]
+
+{ #category : 'planetoid belt' }
+WorldBuildersHandbook >> planetoidBeltResourceRating: aPlanetoidBelt [
+
+	| dice |
+	dice := DieRoller roller.
+	^ (dice roll: 2 d: 6) - 7 + aPlanetoidBelt bulk
+	  + (aPlanetoidBelt mPercentage / 10 floor)
+	  + (aPlanetoidBelt cPercentage / 10 floor)
 ]
 
 { #category : 'as yet unclassified' }

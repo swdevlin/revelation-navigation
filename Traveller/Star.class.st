@@ -13,7 +13,8 @@ Class {
 		'age',
 		'luminosity',
 		'stellarBodies',
-		'isProtoStar'
+		'isProtoStar',
+		'solarSystem'
 	],
 	#classVars : [
 		'brownDwarfLuminosity',
@@ -142,6 +143,15 @@ Star >> isHotter: aStar [
 		^ (types indexOf: stellarType) < (types indexOf: aStar stellarType) ]
 ]
 
+{ #category : 'orbits' }
+Star >> isLastStellarObject: aBody [
+
+	| idx |
+	idx := stellarBodies indexOf: aBody ifAbsent: [ ^ false ].
+	^ idx = stellarBodies size.
+
+]
+
 { #category : 'testing' }
 Star >> isPostStellar [
 
@@ -216,6 +226,20 @@ Star >> multipleStarDM [
 	^ dm
 ]
 
+{ #category : 'accessing' }
+Star >> solarSystem [
+
+	solarSystem
+		ifNil: [ ^ orbiting solarSystem ]
+		ifNotNil: [ ^ solarSystem ]
+]
+
+{ #category : 'accessing' }
+Star >> solarSystem: anObject [
+
+	solarSystem := anObject
+]
+
 { #category : 'as yet unclassified' }
 Star >> spectralClassification: sc [
 
@@ -240,6 +264,24 @@ Star >> stellarClass [
 Star >> stellarClass: anObject [
 
 	stellarClass := anObject
+]
+
+{ #category : 'orbits' }
+Star >> stellarObject: aBody hasAdjacent: aClass [
+
+	| idx prev next |
+	idx := stellarBodies indexOf: aBody ifAbsent: [ ^ false ].
+
+	prev := idx > 1
+		        ifTrue: [ stellarBodies at: idx - 1 ]
+		        ifFalse: [ nil ].
+
+	next := idx < stellarBodies size
+		        ifTrue: [ stellarBodies at: idx + 1 ]
+		        ifFalse: [ nil ].
+
+	^ (prev notNil and: [ prev isKindOf: aClass ]) or:
+		  (next notNil and: [ next isKindOf: aClass ])
 ]
 
 { #category : 'accessing' }

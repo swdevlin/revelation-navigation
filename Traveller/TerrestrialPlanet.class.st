@@ -1,3 +1,6 @@
+"
+A terrestrial planet
+"
 Class {
 	#name : 'TerrestrialPlanet',
 	#superclass : 'StellarObject',

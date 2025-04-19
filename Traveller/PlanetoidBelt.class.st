@@ -1,3 +1,6 @@
+"
+A planetoid belt.
+"
 Class {
 	#name : 'PlanetoidBelt',
 	#superclass : 'StellarObject',

@@ -69,7 +69,8 @@ SolarSystem >> primary [
 { #category : 'accessing' }
 SolarSystem >> primary: anObject [
 
-	primary := anObject
+	primary := anObject.
+	anObject solarSystem: self
 ]
 
 { #category : 'as yet unclassified' }
