@@ -30,8 +30,8 @@ Class {
 		'massData',
 		'temperatures',
 		'diameters',
-		'luminosity',
-		'minimumAllowableOrbit'
+		'minimumAllowableOrbit',
+		'luminosityTable'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -948,7 +948,7 @@ WorldBuildersHandbook >> initialize [
 	                #( 1800 800 500 200 nil 0.1 0.08 ) ).
 
 	"WBH 19"
-	luminosity := #( #( 3400000 3200000 2700000 2400000 nil 2200000
+	luminosityTable := #( #( 3400000 3200000 2700000 2400000 nil 2200000
 	                    180 )
 	                 #( 1100000 900000 730000 510000 nil 330000 73 )
 	                 #( 290000 140000 100000 72000 46000 35000 29 )
@@ -1021,7 +1021,7 @@ WorldBuildersHandbook >> interpolatedLookup: table type: type subtype: subtype c
 WorldBuildersHandbook >> luminosityForType: type subtype: subtype class: class [
 
 	^ self
-		  interpolatedLookup: luminosity 
+		  interpolatedLookup: luminosityTable 
 		  type: type
 		  subtype: subtype
 		  class: class

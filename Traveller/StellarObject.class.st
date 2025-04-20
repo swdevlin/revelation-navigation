@@ -15,7 +15,6 @@ Class {
 		'period',
 		'temperature',
 		'mass',
-		'sizeCode',
 		'orbiting'
 	],
 	#category : 'Traveller',
@@ -147,18 +146,6 @@ StellarObject >> period [
 StellarObject >> period: anObject [
 
 	period := anObject
-]
-
-{ #category : 'accessing' }
-StellarObject >> sizeCode [
-
-	^ sizeCode
-]
-
-{ #category : 'accessing' }
-StellarObject >> sizeCode: anObject [
-
-	sizeCode := anObject
 ]
 
 { #category : 'accessing' }
