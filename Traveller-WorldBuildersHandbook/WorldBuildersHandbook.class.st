@@ -154,7 +154,7 @@ WorldBuildersHandbook >> assignBeltSignificantBodies: aPlanetoidBelt [
 		dm := dm + 2 ].
 	aPlanetoidBelt span < 0.1 ifTrue: [ dm := dm - 4 ].
 	aPlanetoidBelt size1Bodies:
-		(dice roll: 2 d: 6 - 12 + aPlanetoidBelt bulk + dm).
+		(((dice roll: 2 d: 6) - 12 + aPlanetoidBelt bulk + dm) floor max: 0).
 
 	dm := 1.
 	((hzco + 2 to: hzco + 3) includes: aPlanetoidBelt orbit) ifTrue: [
@@ -162,9 +162,15 @@ WorldBuildersHandbook >> assignBeltSignificantBodies: aPlanetoidBelt [
 	hzco + 3 < aPlanetoidBelt orbit ifTrue: [ dm := dm + 3 ].
 	aPlanetoidBelt span > 1 ifTrue: [ dm := dm + 1 ].
 
-	bodies := dice roll: 2 d: 6 - 10 + (dm * (aPlanetoidBelt bulk + 1)).
+	bodies := (dice roll: 2 d: 6) - 10 + (dm * (aPlanetoidBelt bulk + 1)).
 	aPlanetoidBelt span < 0.1 ifTrue: [ bodies := bodies / 2 ceiling ].
-	aPlanetoidBelt sizeSBodies: bodies
+	aPlanetoidBelt sizeSBodies: (bodies floor max: 0)
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignGasGiantCharacteristics: aGasGiant [
+
+	^ nil
 ]
 
 { #category : 'as yet unclassified' }
@@ -179,7 +185,7 @@ WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
 
 	| star span dice dm composition table total |
 	dice := DieRoller roller.
-	aPlanetoidBelt size: 0.
+	aPlanetoidBelt sizeCode: 0.
 	star := aPlanetoidBelt orbiting.
 	dm := 0.
 	(star stellarObject: aPlanetoidBelt hasAdjacent: GasGiant) ifTrue: [
@@ -192,7 +198,7 @@ WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
 	table := PlanetoidBeltCompositionTable new.
 	dm := 0.
 	aPlanetoidBelt orbit < star hzco ifTrue: [ dm := dm - 4 ].
-	aPlanetoidBelt orbit > 2 + star hzco ifTrue: [ dm := dm + 4 ].
+	aPlanetoidBelt orbit > (2 + star hzco) ifTrue: [ dm := dm + 4 ].
 
 	composition := table rollwithDM: dm.
 
@@ -217,9 +223,10 @@ WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
 	aPlanetoidBelt sPercentage: (composition at: #sPercentage).
 
 	aPlanetoidBelt bulk: (self planetoidBeltBulk: aPlanetoidBelt).
-	
-	aPlanetoidBelt resourceRating: (self planetoidBeltResourceRating: aPlanetoidBelt).
 
+	aPlanetoidBelt resourceRating:
+		(self planetoidBeltResourceRating: aPlanetoidBelt).
+	self assignBeltSignificantBodies: aPlanetoidBelt
 ]
 
 { #category : 'as yet unclassified' }
@@ -344,6 +351,12 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 
 		(distribution at: star) do: [ :stellarBody |
 			star addStellarBody: stellarBody value ] ]
+]
+
+{ #category : 'as yet unclassified' }
+WorldBuildersHandbook >> assignTerrestrialPlanetCharacteristics: aPlanet [
+
+	^ nil
 ]
 
 { #category : 'as yet unclassified' }
@@ -530,10 +543,10 @@ WorldBuildersHandbook >> developStellarObjects: aSolarSystem [
 		          at: WBHPlanetoidBelt
 		          put: #assignPlanetoidBeltCharacteristics:;
 		          yourself.
-	"    ^self perform: selector with: aBody."
 
 	aSolarSystem stars do: [ :star |
-		star stellarBodies do: [ :stellarBody |
+		(star stellarBodies reject: [ :body | body isKindOf: Star ]) do: [
+			:stellarBody |
 			self perform: (mapper at: stellarBody class) with: stellarBody ] ]
 ]
 
@@ -1114,12 +1127,11 @@ WorldBuildersHandbook >> numberOfTerrestrialPlanetsFor: solarSystem [
 { #category : 'planetoid belt' }
 WorldBuildersHandbook >> planetoidBeltBulk: aPlanetoidBelt [
 
-	| dice bulk solarSystem |
+	| dice bulk |
 	dice := DieRoller roller.
 	bulk := dice roll: 2 d: 2.
-	solarSystem := aPlanetoidBelt orbiting solarSystem.
-	^ bulk - (solarSystem age / 2 floor)
-	  + (aPlanetoidBelt cPercentage / 10 floor)
+	^ bulk - (aPlanetoidBelt orbiting age / 2 floor)
+	  + (aPlanetoidBelt cPercentage / 10 floor) max: 1
 ]
 
 { #category : 'planetoid belt' }

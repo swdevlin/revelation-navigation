@@ -44,6 +44,16 @@ WBHPlanetoidBelt >> cPercentage: anObject [
 	cPercentage := anObject
 ]
 
+{ #category : 'formatting' }
+WBHPlanetoidBelt >> formatPct: aNumber [
+
+	| s |
+	s := aNumber printString.
+	^ s size = 1
+		  ifTrue: [ '0' , s ]
+		  ifFalse: [ s ]
+]
+
 { #category : 'accessing' }
 WBHPlanetoidBelt >> mPercentage [
 
@@ -60,6 +70,37 @@ WBHPlanetoidBelt >> mPercentage: anObject [
 WBHPlanetoidBelt >> oPercentage [
 
 	^ 100 - mPercentage - sPercentage - cPercentage
+]
+
+{ #category : 'printing' }
+WBHPlanetoidBelt >> printString [
+
+	^ self profile
+]
+
+{ #category : 'accessing' }
+WBHPlanetoidBelt >> profile [
+	"WBH 74"
+
+	^ String streamContents: [ :str |
+		  str
+			  nextPutAll: span printString;
+			  nextPut: $-;
+			  nextPutAll: (self formatPct: mPercentage);
+			  nextPut: $.;
+			  nextPutAll: (self formatPct: sPercentage);
+			  nextPut: $.;
+			  nextPutAll: (self formatPct: cPercentage);
+			  nextPut: $.;
+			  nextPutAll: (self formatPct: self oPercentage);
+			  nextPut: $-;
+			  nextPutAll: self bulk printString;
+			  nextPut: $-;
+			  nextPutAll: self resourceRating printString;
+			  nextPut: $-;
+			  nextPutAll: size1Bodies printString;
+			  nextPut: $-;
+			  nextPutAll: sizeSBodies printString ]
 ]
 
 { #category : 'accessing' }
