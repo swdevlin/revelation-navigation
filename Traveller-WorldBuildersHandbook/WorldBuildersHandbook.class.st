@@ -487,7 +487,7 @@ WorldBuildersHandbook >> calculateSecondaryAvailableOrbits: aStar in: aSolarSyst
 	(adjacentStars anySatisfy: [ :star | star eccentricity > 0.5 ])
 		ifTrue: [ maxOrbit := maxOrbit - 1 ].
 
-	maxOrbit > mao ifTrue: [ orbits add: mao @ maxOrbit ].
+	maxOrbit > mao ifTrue: [ orbits add: (mao to: maxOrbit) ].
 
 	^ orbits
 ]
@@ -666,9 +666,10 @@ WorldBuildersHandbook >> generateNewWhiteDwarf [
 		  mass: mass;
 		  age: age;
 		  colour: 'White';
-		  temperature: (self whiteDwarfTemperatureForMass: mass age: age);
 		  diameter: diameter;
+		  temperature: (self whiteDwarfTemperatureForMass: mass age: age);
 		  inclination: self calculateInclination;
+		  mao: 0.001;
 		  yourself
 ]
 

@@ -43,12 +43,16 @@ itself, up to Orbit# 3.10."
 		        inBand: wbh nearOrbitBand.
 	solarSystem addStar: near.
 
-	near eccentricity: (wbh calculateEccentricityFor: near orbiting: primary in: solarSystem).
+	near eccentricity:
+		(wbh
+			 calculateEccentricityFor: near
+			 orbiting: primary
+			 in: solarSystem).
 	orbits := wbh calculateSecondaryAvailableOrbits: near in: solarSystem.
-	
+
 	expected := OrderedCollection new
 		            add:
-			            (wbh minimumAllowableOrbit: near) @ (near orbit - 3);
+			            ((wbh minimumAllowableOrbit: near) to: near orbit - 3);
 		            yourself.
 	self assert: orbits equals: expected.
 
@@ -69,12 +73,18 @@ both Close and Far neighbours."
 		         inBand: wbh closeOrbitBand.
 	solarSystem addStar: close.
 
-	close eccentricity: (wbh calculateEccentricityFor: close orbiting: primary in: solarSystem).
-	orbits := wbh calculateSecondaryAvailableOrbits: close in: solarSystem.
+	close eccentricity:
+		(wbh
+			 calculateEccentricityFor: close
+			 orbiting: primary
+			 in: solarSystem).
+	orbits := wbh
+		          calculateSecondaryAvailableOrbits: near
+		          in: solarSystem.
 
 	expected := OrderedCollection new
 		            add:
-			            (wbh minimumAllowableOrbit: near) @ (near orbit - 4);
+			            ((wbh minimumAllowableOrbit: near) to: near orbit - 4);
 		            yourself.
 	self assert: orbits equals: expected.
 
@@ -92,7 +102,7 @@ condition can only be triggered once per star."
 	orbits := wbh calculateSecondaryAvailableOrbits: near in: solarSystem.
 	expected := OrderedCollection new
 		            add:
-			            (wbh minimumAllowableOrbit: near) @ (near orbit - 5);
+			            ((wbh minimumAllowableOrbit: near) to: near orbit - 5);
 		            yourself.
 	self assert: orbits equals: expected.
 
@@ -102,7 +112,7 @@ condition can only be triggered once per star."
 	orbits := wbh calculateSecondaryAvailableOrbits: near in: solarSystem.
 	expected := OrderedCollection new
 		            add:
-			            (wbh minimumAllowableOrbit: near) @ (near orbit - 6);
+			            ((wbh minimumAllowableOrbit: near) to: near orbit - 6);
 		            yourself.
 	self assert: orbits equals: expected
 ]
