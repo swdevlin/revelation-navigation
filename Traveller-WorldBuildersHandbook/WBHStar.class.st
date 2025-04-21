@@ -86,7 +86,7 @@ WBHStar class >> brownDwarfTypes [
 { #category : 'adding' }
 WBHStar >> addAvailableOrbitsFrom: minOrbit to: maxOrbit [
 
-	availableOrbits add: (minOrbit to: maxOrbit)
+	availableOrbits add: (OrbitRange from: minOrbit to: maxOrbit)
 ]
 
 { #category : 'adding' }
@@ -140,12 +140,20 @@ WBHStar >> gotoNextOrbit [
 
 	| currentBand f l |
 	currentBand := availableOrbits at: 1.
-	f := currentBand first.
-	l := currentBand stop.
+	f := currentBand min.
+	l := currentBand max.
 
-	(currentBand rangeIncludes: f + spread)
-		ifTrue: [ currentBand setFrom: f + spread to: l by: spread ]
-		ifFalse: [ availableOrbits removeAt: 1 ]
+	(currentBand includes: f + spread)
+		ifTrue: [ currentBand min: f + spread ]
+		ifFalse: [
+			Transcript
+				show: currentBand;
+				show: ' spread: ';
+				show: spread;
+				show: ' range: ';
+				show: currentBand size;
+				cr.
+			availableOrbits removeAt: 1 ]
 ]
 
 { #category : 'accessing' }
@@ -182,7 +190,7 @@ WBHStar >> mao: anObject [
 { #category : 'as yet unclassified' }
 WBHStar >> nextOrbit [
 
-	^ (availableOrbits at: 1) first
+	^ (availableOrbits at: 1) min
 ]
 
 { #category : 'accessing' }

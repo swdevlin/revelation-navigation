@@ -394,6 +394,7 @@ WorldBuildersHandbook >> baselineOrbitForBaselineBetween1AndWorlds: hzco [
 	"wbh page 45 step 3a"
 
 	| factor dice |
+	Transcript show: '3a'; cr.
 	dice := DieRoller roller.
 	factor := hzco >= 1
 		          ifTrue: [ 10 ]
@@ -407,6 +408,7 @@ WorldBuildersHandbook >> baselineOrbitForBaselineGreaterThanWorlds: aStar worlds
 
 	| bon hzco baselineNumber dice mao |
 	dice := DieRoller roller.
+	Transcript show: '3c worlds: '; show: worlds; cr.
 
 	mao := aStar mao.
 	hzco := aStar hzco.
@@ -435,6 +437,7 @@ WorldBuildersHandbook >> baselineOrbitForBaselineLessThan1: aStar worlds: worlds
 
 	| hzco dice baselineNumber mao offset r |
 	mao := aStar mao.
+	Transcript show: '3b - worlds: '; show: worlds; cr.
 
 	hzco := aStar hzco.
 	dice := DieRoller roller.

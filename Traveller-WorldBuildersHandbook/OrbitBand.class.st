@@ -1,13 +1,13 @@
 "
 Helper class for orbit bands.
+
+An orbit band includes a min and max
 "
 Class {
 	#name : 'OrbitBand',
-	#superclass : 'Object',
+	#superclass : 'OrbitRange',
 	#instVars : [
-		'label',
-		'min',
-		'max'
+		'label'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -38,30 +38,6 @@ OrbitBand >> label [
 OrbitBand >> label: anObject [
 
 	label := anObject
-]
-
-{ #category : 'accessing' }
-OrbitBand >> max [
-
-	^ max
-]
-
-{ #category : 'accessing' }
-OrbitBand >> max: anObject [
-
-	max := anObject
-]
-
-{ #category : 'accessing' }
-OrbitBand >> min [
-
-	^ min
-]
-
-{ #category : 'accessing' }
-OrbitBand >> min: anObject [
-
-	min := anObject
 ]
 
 { #category : 'accessing' }

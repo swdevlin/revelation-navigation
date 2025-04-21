@@ -62,8 +62,8 @@ would be unavailable."
 	solarSystem addStar: secondary.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: (0.03 to: secondary orbit - 1);
-		            add: (secondary orbit + 1 to: 20);
+		            add: (OrbitRange from: 0.03 to: secondary orbit - 1);
+		            add: (OrbitRange from: secondary orbit + 1 to: 20);
 		            yourself.
 	self assert: primary availableOrbits equals: expected.
 
@@ -78,8 +78,8 @@ the primary star."
 	secondary eccentricity: 0.25.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: (0.03 to: secondary orbit - 2);
-		            add: (secondary orbit + 2 to: 20);
+		            add: (OrbitRange from: 0.03 to: secondary orbit - 2);
+		            add: (OrbitRange from: secondary orbit + 2 to: 20);
 		            yourself.
 	self assert: primary availableOrbits equals: expected.
 
@@ -96,8 +96,8 @@ to Far secondary stars."
 	secondary eccentricity: 0.56.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: (0.03 to: secondary orbit - 3);
-		            add: (secondary orbit + 3 to: 20);
+		            add: (OrbitRange from: 0.03 to: secondary orbit - 3);
+		            add: (OrbitRange from: secondary orbit + 3 to: 20);
 		            yourself.
 	self assert: primary availableOrbits equals: expected.
 
@@ -105,8 +105,8 @@ to Far secondary stars."
 	secondary orbit: 12.5.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: (0.03 to: secondary orbit - 2);
-		            add: (secondary orbit + 2 to: 20);
+		            add: (OrbitRange from: 0.03 to: secondary orbit - 2);
+		            add: (OrbitRange from: secondary orbit + 2 to: 20);
 		            yourself.
 	self assert: primary availableOrbits equals: expected
 ]
@@ -121,14 +121,14 @@ WorldBuilderHandbookTest >> testAllowableOrbitsOneStar [
 	solarSystem primary: primary.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: (0.03 to: 20);
+		            add: (OrbitRange from: 0.03 to: 20);
 		            yourself.
 	self assert: (primary availableOrbits) equals: expected.
 	star := wbh generateCompanionFor: primary in: solarSystem.
 	primary companion: star.
 	orbits := wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: ((0.5 + star eccentricity) to: 20);
+		            add: (OrbitRange from: (0.5 + star eccentricity) to: 20);
 		            yourself.
 	self assert: (primary availableOrbits) equals: expected
 ]
