@@ -43,12 +43,8 @@ WorldBuilderHandbookTest >> testAllowableOrbitsMultipleStars [
 	| solarSystem primary wbh expected secondary |
 	wbh := WorldBuildersHandbook new.
 	solarSystem := WBHSolarSystem new.
-	primary := WBHStar newWithType: 'F' subtype: 5 class: 'V'.
+	primary := wbh newStarWithType: 'F' subtype: 5 class: 'V'.
 	solarSystem primary: primary.
-	wbh
-		assignStarCharacteristicsTo: primary
-		orbiting: nil
-		in: solarSystem.
 
 	"5. For the Close, Near or Far Orbit occupied by a
 secondary star, consider the Orbits# 1.00 from
@@ -66,10 +62,10 @@ would be unavailable."
 	solarSystem addStar: secondary.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: 0.03 @ (secondary orbit - 1);
-		            add: secondary orbit + 1 @ 20;
+		            add: (0.03 to: secondary orbit - 1);
+		            add: (secondary orbit + 1 to: 20);
 		            yourself.
-	self assert: (primary availableOrbits) equals: expected.
+	self assert: primary availableOrbits equals: expected.
 
 	"6. If the eccentricity of any Close, Near or Far
 secondary star is greater than 0.2, add one more
@@ -82,10 +78,10 @@ the primary star."
 	secondary eccentricity: 0.25.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: 0.03 @ (secondary orbit - 2);
-		            add: secondary orbit + 2 @ 20;
+		            add: (0.03 to: secondary orbit - 2);
+		            add: (secondary orbit + 2 to: 20);
 		            yourself.
-	self assert: (primary availableOrbits) equals: expected.
+	self assert: primary availableOrbits equals: expected.
 
 
 	"7. If any Close or Near secondary star has an
@@ -100,19 +96,19 @@ to Far secondary stars."
 	secondary eccentricity: 0.56.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: 0.03 @ (secondary orbit - 3);
-		            add: secondary orbit + 3 @ 20;
+		            add: (0.03 to: secondary orbit - 3);
+		            add: (secondary orbit + 3 to: 20);
 		            yourself.
-	self assert: (primary availableOrbits) equals: expected.
+	self assert: primary availableOrbits equals: expected.
 
 
 	secondary orbit: 12.5.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: 0.03 @ (secondary orbit - 2);
-		            add: secondary orbit + 2 @ 20;
+		            add: (0.03 to: secondary orbit - 2);
+		            add: (secondary orbit + 2 to: 20);
 		            yourself.
-	self assert: (primary availableOrbits) equals: expected
+	self assert: primary availableOrbits equals: expected
 ]
 
 { #category : 'tests' }
@@ -121,12 +117,8 @@ WorldBuilderHandbookTest >> testAllowableOrbitsOneStar [
 	| star solarSystem primary orbits wbh expected |
 	wbh := WorldBuildersHandbook new.
 	solarSystem := WBHSolarSystem new.
-	primary := WBHStar newWithType: 'F' subtype: 5 class: 'V'.
+	primary := wbh newStarWithType: 'F' subtype: 5 class: 'V'.
 	solarSystem primary: primary.
-	wbh
-		assignStarCharacteristicsTo: primary
-		orbiting: nil
-		in: solarSystem.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
 		            add: (0.03 to: 20);
@@ -139,16 +131,6 @@ WorldBuilderHandbookTest >> testAllowableOrbitsOneStar [
 		            add: ((0.5 + star eccentricity) to: 20);
 		            yourself.
 	self assert: (primary availableOrbits) equals: expected
-]
-
-{ #category : 'tests' }
-WorldBuilderHandbookTest >> testAssignStarOrbitCharacteristics [
-
-	| primary wbh |
-	wbh := WorldBuildersHandbook new.
-	primary := wbh generatePrimaryStar.
-	wbh assignStarOrbitCharacteristicsTo: primary.
-	self deny: (primary hzco) equals: nil
 ]
 
 { #category : 'tests' }
@@ -194,11 +176,7 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 	worlds := 9.
 
 	"has mao of 0.05"
-	star := WBHStar new
-		        stellarType: 'A';
-		        subtype: 5;
-		        stellarClass: 'V';
-		        yourself.
+	star := wbh newStarWithType: 'A' subtype: 5 class: 'V'.
 
 	star hzco: 3.
 	star baselineNumber: 4.
@@ -207,11 +185,7 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 	self assert: bon equals: 3 + (6 - 7 / 10).
 
 
-	star := WBHStar new
-		        stellarType: 'K';
-		        subtype: 5;
-		        stellarClass: 'V';
-		        yourself. "mao of 0.02"
+	star := wbh newStarWithType: 'K' subtype: 5 class:'V'. "mao of 0.02"
 
 
 	"Step 3B - baseline number < 1"
@@ -230,11 +204,7 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 
 	"Step 3B - baseline number < 1"
 	"minimum orbit >= 1"
-	star := WBHStar new
-		        stellarType: 'A';
-		        subtype: 5;
-		        stellarClass: 'II';
-		        yourself. "mao of 1.17"
+	star := wbh newStarWithType: 'A' subtype: 5 class: 'II'. "mao of 1.17"
 
 	dice
 		clearQueue;

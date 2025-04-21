@@ -12,9 +12,8 @@ StellarObjectsTest >> testNumberOfGasGiants [
 	
 	solarSystem := WBHSolarSystem new.
 	wbh := WorldBuildersHandbook new.
-	star := WBHStar newWithType: 'G' subtype: 0 class: 'IV'.
+	star := wbh newStarWithType: 'G' subtype: 0 class:  'IV'.
 	solarSystem primary: star.
-	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
 
 	roller queueD: 6 value: 6.
 	roller queueD: 6 value: 4.

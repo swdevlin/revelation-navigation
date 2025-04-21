@@ -115,11 +115,16 @@ WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
 	aSolarSystem secondaryStars do: [ :star |
 		| offset orbit ownOrbits |
 		star clearAvailableOrbits.
-		star eccentricity: (self calculateEccentricityFor: star orbiting: primary in: aSolarSystem). 
+		star eccentricity ifNil: [
+			star eccentricity: (self
+					 calculateEccentricityFor: star
+					 orbiting: primary
+					 in: aSolarSystem) ].
+
 
 		offset := self starOrbitOffset: star.
 		orbit := star orbit.
-		primary addAvailableOrbitsFrom: minOrbit to: (orbit - offset).
+		primary addAvailableOrbitsFrom: minOrbit to: orbit - offset.
 		minOrbit := orbit + offset.
 		ownOrbits := self
 			             calculateSecondaryAvailableOrbits: star
@@ -728,8 +733,6 @@ WorldBuildersHandbook >> generateSecondaryFor: star in: solarSystem inBand: band
 	secondary := self generateStarFromNonPrimaryResult: result for: star.
 
 	secondary orbit: bandRange random.
-
-	self assignStarCharacteristicsTo: secondary orbiting: star in: solarSystem .
 
 	self hasCompanion ifTrue: [
 		companion := self generateCompanionFor: secondary in: solarSystem.

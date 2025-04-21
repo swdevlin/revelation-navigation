@@ -28,12 +28,8 @@ OrbitTests >> testSecondaryOrbits [
 	| close near solarSystem primary orbits wbh expected |
 	wbh := WorldBuildersHandbook new.
 	solarSystem := WBHSolarSystem new.
-	primary := WBHStar newWithType: 'F' subtype: 5 class: 'V'.
+	primary := wbh newStarWithType: 'F' subtype: 5 class: 'V'.
 	solarSystem primary: primary.
-	wbh
-		assignStarCharacteristicsTo: primary
-		orbiting: nil
-		in: solarSystem.
 
 	"8. Close, Near or Far secondary stars have their own
 centred orbits. These can extend up to an Orbit#
@@ -46,7 +42,10 @@ itself, up to Orbit# 3.10."
 		        in: solarSystem
 		        inBand: wbh nearOrbitBand.
 	solarSystem addStar: near.
+
+	near eccentricity: (wbh calculateEccentricityFor: near orbiting: primary in: solarSystem).
 	orbits := wbh calculateSecondaryAvailableOrbits: near in: solarSystem.
+	
 	expected := OrderedCollection new
 		            add:
 			            (wbh minimumAllowableOrbit: near) @ (near orbit - 3);
@@ -70,7 +69,9 @@ both Close and Far neighbours."
 		         inBand: wbh closeOrbitBand.
 	solarSystem addStar: close.
 
-	orbits := wbh calculateSecondaryAvailableOrbits: near in: solarSystem.
+	close eccentricity: (wbh calculateEccentricityFor: close orbiting: primary in: solarSystem).
+	orbits := wbh calculateSecondaryAvailableOrbits: close in: solarSystem.
+
 	expected := OrderedCollection new
 		            add:
 			            (wbh minimumAllowableOrbit: near) @ (near orbit - 4);

@@ -62,9 +62,8 @@ StarTest >> testGenerateCompanionForStar [
 	| star companion wbh solarSystem|
 	wbh := WorldBuildersHandbook new.
 	solarSystem := WBHSolarSystem new.
-	star := WBHStar newWithType: 'K' subtype: 5 class: 'V'.
+	star := wbh newStarWithType: 'K' subtype: 5 class:  'V'.
 	solarSystem primary: star.
-	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
  	companion := wbh generateCompanionFor: star in: solarSystem .
 	self assert: companion isNotNil.
 ]
@@ -135,9 +134,8 @@ StarTest >> testGenerateSecondaryForStar [
 	| star secondary wbh solarSystem |
 	wbh := WorldBuildersHandbook new.
 	solarSystem := WBHSolarSystem new.
-	star := WBHStar newWithType: 'K' subtype: 5 class: 'V'.
+	star := wbh newStarWithType: 'K' subtype: 5 class:  'V'.
 	solarSystem primary: star.
-	wbh assignStarCharacteristicsTo: star orbiting: nil in: solarSystem .
  	secondary := wbh generateSecondaryFor: solarSystem inBand: wbh closeOrbitBand.
 	self assert: secondary isNotNil.
 ]
