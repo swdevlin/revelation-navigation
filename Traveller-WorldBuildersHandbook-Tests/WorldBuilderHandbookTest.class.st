@@ -181,11 +181,15 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 	star hzco: 3.
 	star baselineNumber: 4.
 
+	dice
+		clearQueue;
+		queueD: 6 value: 3;
+		queueD: 6 value: 3.
 	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
 	self assert: bon equals: 3 + (6 - 7 / 10).
 
 
-	star := wbh newStarWithType: 'K' subtype: 5 class:'V'. "mao of 0.02"
+	star := wbh newStarWithType: 'K' subtype: 5 class: 'V'. "mao of 0.02"
 
 
 	"Step 3B - baseline number < 1"
