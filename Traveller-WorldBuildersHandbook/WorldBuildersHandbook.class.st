@@ -103,25 +103,28 @@ WorldBuildersHandbook >> assignAvailableOrbits: aSolarSystem [
 WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
 	"wbh: page 38"
 
-	| mao primary minOrbit minAvailableOrbit |
+	| mao primary minOrbit minAvailableOrbit secondary |
 	primary := aSolarSystem primary.
 	primary clearAvailableOrbits.
 	primary eccentricity: 0.
 	mao := primary mao.
 
-	primary companion ifNotNil: [
-		mao := 0.5 + primary companion eccentricity ].
-	minOrbit := mao.
-	aSolarSystem secondaryStars do: [ :star |
-		| offset orbit ownOrbits |
-		star clearAvailableOrbits.
+	secondary := aSolarSystem secondaryStars.
+
+	"We need all the eccentricities in order to calculate available orbits"
+	secondary do: [ :star |
 		star eccentricity ifNil: [
 			star eccentricity: (self
 					 calculateEccentricityFor: star
 					 orbiting: primary
-					 in: aSolarSystem) ].
+					 in: aSolarSystem) ] ].
 
-
+	primary companion ifNotNil: [
+		mao := 0.5 + primary companion eccentricity ].
+	minOrbit := mao.
+	secondary do: [ :star |
+		| offset orbit ownOrbits |
+		star clearAvailableOrbits.
 		offset := self starOrbitOffset: star.
 		orbit := star orbit.
 		primary addAvailableOrbitsFrom: minOrbit to: orbit - offset.
@@ -361,7 +364,7 @@ WorldBuildersHandbook >> bandFor: aStar [
 	^ nil
 ]
 
-{ #category : 'orbits' }
+{ #category : 'baseline' }
 WorldBuildersHandbook >> baselineNumberFor: aStar totalWorlds: worlds [
 
 	| b |
@@ -386,10 +389,67 @@ WorldBuildersHandbook >> baselineNumberFor: aStar totalWorlds: worlds [
 	^ b
 ]
 
-{ #category : 'orbits' }
+{ #category : 'baseline' }
+WorldBuildersHandbook >> baselineOrbitForBaselineBetween1AndWorlds: hzco [
+	"wbh page 45 step 3a"
+
+	| factor dice |
+	dice := DieRoller roller.
+	factor := hzco >= 1
+		          ifTrue: [ 10 ]
+		          ifFalse: [ 100 ].
+	^ hzco + ((dice roll: 2 d: 6) - 7 / factor)
+]
+
+{ #category : 'baseline' }
+WorldBuildersHandbook >> baselineOrbitForBaselineGreaterThanWorlds: aStar worlds: worlds [
+	"wbh page 46 step 3c"
+
+	| bon hzco baselineNumber dice mao |
+	dice := DieRoller roller.
+
+	mao := aStar mao.
+	hzco := aStar hzco.
+	baselineNumber := aStar baselineNumber.
+
+	bon := hzco - baselineNumber + worlds >= 1.0
+		       ifTrue: [
+		       hzco - baselineNumber + worlds
+		       + ((dice roll: 2 d: 6) - 7 / 5) ]
+		       ifFalse: [
+			       hzco
+			       -
+			       (baselineNumber + worlds + ((dice roll: 2 d: 6) - 7 / 5)
+			        / 10) ].
+	(bon < 1 or: hzco < 1) ifTrue: [
+		bon := hzco
+		       -
+		       (baselineNumber + worlds + ((dice roll: 2 d: 6) - 7 / 5) / 10) ].
+	bon < 0 ifTrue: [ bon := hzco - 0.1 max: mao + (worlds * 0.01) ].
+	^ bon
+]
+
+{ #category : 'baseline' }
+WorldBuildersHandbook >> baselineOrbitForBaselineLessThan1: aStar worlds: worlds [
+	"wbh page 45 step 3b"
+
+	| hzco dice baselineNumber mao offset r |
+	mao := aStar mao.
+
+	hzco := aStar hzco.
+	dice := DieRoller roller.
+	baselineNumber := aStar baselineNumber.
+
+	r := dice roll: 2 d: 6.
+	offset := mao > 1
+		          ifTrue: [ ^ hzco - baselineNumber + worlds + (r - 2 / 10) ]
+		          ifFalse: [ ^ mao - (baselineNumber / 10) + (r - 2 / 100) ]
+]
+
+{ #category : 'baseline' }
 WorldBuildersHandbook >> baselineOrbitNumberFor: aStar worlds: worlds [
 
-	| hzco dice factor baselineNumber mao |
+	| hzco dice baselineNumber mao |
 	mao := aStar mao.
 
 	hzco := aStar hzco.
@@ -397,28 +457,15 @@ WorldBuildersHandbook >> baselineOrbitNumberFor: aStar worlds: worlds [
 	baselineNumber := aStar baselineNumber.
 
 	(baselineNumber between: 1 and: worlds) ifTrue: [
-		factor := hzco >= 1
-			          ifTrue: [ 10 ]
-			          ifFalse: [ 100 ].
-		^ hzco + ((dice roll: 2 d: 6) - 7 / factor) ].
+		^ self baselineOrbitForBaselineBetween1AndWorlds: hzco ].
 
 	baselineNumber < 1
 		ifTrue: [
-			| offset r |
-			r := dice roll: 2 d: 6.
-			offset := mao > 1
-				          ifTrue: [
-				          ^ hzco - baselineNumber + worlds + (r - 2 / 10) ]
-				          ifFalse: [
-				          ^ mao - (baselineNumber / 10) + (r - 2 / 100) ] ]
+		^ self baselineOrbitForBaselineLessThan1: aStar worlds: worlds ]
 		ifFalse: [
-			hzco - baselineNumber + worlds >= 1.0
-				ifTrue: [
-				^ hzco - baselineNumber + worlds + ((dice roll: 2 d: 6) - 7 / 5) ]
-				ifFalse: [
-					^ hzco
-					  -
-					  (baselineNumber + worlds + ((dice roll: 2 d: 6) - 7 / 5) / 10) ] ]
+			^ self
+				  baselineOrbitForBaselineGreaterThanWorlds: aStar
+				  worlds: worlds ]
 ]
 
 { #category : 'as yet unclassified' }
@@ -477,7 +524,7 @@ WorldBuildersHandbook >> calculateSecondaryAvailableOrbits: aStar in: aSolarSyst
 	maxOrbit := aStar orbit - 3.
 	(self hasAdjacentStarIn: aSolarSystem for: aStar) ifTrue: [
 		maxOrbit := maxOrbit - 1 ].
-	mao := self minimumAllowableOrbit: aStar.
+	mao := aStar mao.
 
 	adjacentStars := self starsAdjacentTo: aStar in: aSolarSystem.
 
@@ -583,17 +630,21 @@ WorldBuildersHandbook >> generateLesserFor: aStar [
 	stellarType = 'BD'
 		ifTrue: [ ^ self generateNewBrownDwarf ]
 		ifFalse: [
+			| stellarClass |
+			stellarClass := (aStar stellarClass = 'IV' and: subtype >= 5)
+				                ifTrue: [ 'V' ]
+				                ifFalse: [ aStar stellarClass ].
 			^ self
 				  newStarWithType: stellarType
 				  subtype: subtype
-				  class: aStar stellarClass ]
+				  class: stellarClass ]
 ]
 
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateNewBrownDwarf [
 	"WBH: 226"
 
-	| mass typeAndSubtypeTuple dice type subtype lower upper temperature diameter luminosity |
+	| mass typeAndSubtypeTuple dice type subtype lower upper temperature diameter luminosity hzco |
 	dice := DieRoller roller.
 	mass := (dice roll: 1 d: 6) / 100.0
 	        + ((dice roll: 4 d: 6) - 1 / 1000).
@@ -612,16 +663,17 @@ WorldBuildersHandbook >> generateNewBrownDwarf [
 		               upper: upper
 		               subtype: subtype.
 
-	luminosity := self class 
+	luminosity := self class
 		              subtypeInterpolate: WBHStar brownDwarfLuminosity
 		              lower: lower
 		              upper: upper
 		              subtype: subtype.
+	hzco := self class auToOrbit: luminosity sqrt.
 
 	diameter := 0.1.
 
 	type = 'L' ifTrue: [
-		diameter := self class 
+		diameter := self class
 			            subtypeInterpolate: #( 0.08 0.06 )
 			            lower: 1
 			            upper: 2
@@ -640,9 +692,15 @@ WorldBuildersHandbook >> generateNewBrownDwarf [
 		  stellarType: type;
 		  subtype: subtype;
 		  mass: mass;
+		  colour: (self colourForType: type);
+		  diameter: diameter;
 		  temperature: temperature;
 		  luminosity: luminosity;
-		  diameter: diameter;
+		  orbitPosition: 0 @ 0;
+		  inclination: self calculateInclination;
+		  age: self smallStarAge;
+		  mao: 0.005;
+		  hzco: hzco;
 		  yourself
 ]
 
@@ -884,6 +942,9 @@ WorldBuildersHandbook >> initialize [
 			           ('G' -> 'Yellow').
 			           ('K' -> 'Light Orange').
 			           ('M' -> 'Orange Red') .
+			           ('L' -> 'Deep Dim Red') .
+			           ('T' -> 'Deep Dim Red') .
+			           ('Y' -> 'Deep Dim Red') .
 			           ('D' -> 'White') .
 			}.
 
@@ -1178,6 +1239,15 @@ WorldBuildersHandbook >> primaryStarClassification [
 			 stellarClass: sc spectralClass).
 
 	^ sc
+]
+
+{ #category : 'star generation' }
+WorldBuildersHandbook >> smallStarAge [
+
+	| dice |
+	dice := DieRoller roller.
+	^ (dice roll: 1 d: 6) * 2 + (dice roll: 1 d: 3) - 2
+	  + ((dice roll: 1 d: 10) / 10)
 ]
 
 { #category : 'as yet unclassified' }

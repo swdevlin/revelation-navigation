@@ -138,13 +138,13 @@ WBHStar >> clearAvailableOrbits [
 { #category : 'as yet unclassified' }
 WBHStar >> gotoNextOrbit [
 
-	| currentBand |
+	| currentBand f l |
 	currentBand := availableOrbits at: 1.
-	(currentBand rangeIncludes: currentBand first + spread)
-		ifTrue: [
-			availableOrbits
-				at: 1
-				put: (currentBand first + spread to: currentBand last) ]
+	f := currentBand first.
+	l := currentBand stop.
+
+	(currentBand rangeIncludes: f + spread)
+		ifTrue: [ currentBand setFrom: f + spread to: l by: spread ]
 		ifFalse: [ availableOrbits removeAt: 1 ]
 ]
 
