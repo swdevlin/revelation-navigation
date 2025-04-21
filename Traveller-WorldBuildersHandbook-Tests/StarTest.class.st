@@ -70,20 +70,6 @@ StarTest >> testGenerateCompanionForStar [
 ]
 
 { #category : 'tests' }
-StarTest >> testGenerateCompanionIfPresent [
-| star |
-	roller queueD: 6 value: 5.
-	roller queueD: 6 value: 3.
-
-	star := Star newWithType: 'K' subtype: 5 class: 'V'.
-	star generateCompanionIfPresent.
-	
-	self assert: star companion isNil
-	
-
-]
-
-{ #category : 'tests' }
 StarTest >> testGenerateLesserFor [
 
 	| star lesser wbh |

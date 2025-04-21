@@ -105,6 +105,8 @@ WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
 
 	| mao primary minOrbit minAvailableOrbit |
 	primary := aSolarSystem primary.
+	primary clearAvailableOrbits.
+	primary eccentricity: 0.
 	mao := primary mao.
 
 	primary companion ifNotNil: [
@@ -112,9 +114,12 @@ WorldBuildersHandbook >> assignAvailableOrbitsForMultiStarSystem: aSolarSystem [
 	minOrbit := mao.
 	aSolarSystem secondaryStars do: [ :star |
 		| offset orbit ownOrbits |
+		star clearAvailableOrbits.
+		star eccentricity: (self calculateEccentricityFor: star orbiting: primary in: aSolarSystem). 
+
 		offset := self starOrbitOffset: star.
 		orbit := star orbit.
-		primary addAvailableOrbitsFrom: minOrbit to: orbit - offset.
+		primary addAvailableOrbitsFrom: minOrbit to: (orbit - offset).
 		minOrbit := orbit + offset.
 		ownOrbits := self
 			             calculateSecondaryAvailableOrbits: star
@@ -136,6 +141,8 @@ WorldBuildersHandbook >> assignAvailableOrbitsForSingleStarSystem: aSolarSystem 
 
 	| mao primary |
 	primary := aSolarSystem primary.
+	primary eccentricity: 0.
+	primary clearAvailableOrbits.
 	mao := primary mao.
 	primary companion ifNotNil: [
 		mao := 0.5 + primary companion eccentricity ].
@@ -259,34 +266,6 @@ WorldBuildersHandbook >> assignSpecialStarTypeTo: sc [
 	^ sc spectralType: type
 ]
 
-{ #category : 'as yet unclassified' }
-WorldBuildersHandbook >> assignStarCharacteristicsTo: star orbiting: parent in: solarSystem [
-
-	star
-		eccentricity: (parent ifNil: [ 0 ] ifNotNil: [
-					 self
-						 calculateEccentricityFor: star
-						 orbiting: parent
-						 in: solarSystem ]);
-		inclination: self calculateInclination;
-		mass: (self
-				 massForType: star stellarType
-				 subtype: star subtype
-				 class: star stellarClass);
-		colour: (self colourForType: star stellarType);
-		diameter: (self
-				 diameterForType: star stellarType
-				 subtype: star subtype
-				 class: star stellarClass);
-		temperature:
-			(self temperatureForType: star stellarType subtype: star subtype);
-		age: (self calculateAgeFor: star);
-		orbitPosition: 0 @ 0;
-		inclination: 0;
-		mao: (self minimumAllowableOrbit: star);
-		hzco: (self class auToOrbit: star luminosity sqrt)
-]
-
 { #category : 'orbits' }
 WorldBuildersHandbook >> assignStarOrbitCharacteristicsTo: star in: aSolarSystem withTotalWorlds: worlds [
 
@@ -294,7 +273,7 @@ WorldBuildersHandbook >> assignStarOrbitCharacteristicsTo: star in: aSolarSystem
 
 	star baselineOrbitNumber: (self baselineOrbitNumberFor: star worlds: worlds).
 
-	star spread: (self spreadFor: star worlds: worlds)
+	star spread: (self spreadFor: star)
 ]
 
 { #category : 'as yet unclassified' }
@@ -568,7 +547,7 @@ WorldBuildersHandbook >> farOrbitBand [
 
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateCompanionFor: star in: solarsystem [
-	" wbh: 29"
+	"wbh: 29"
 
 	| result table companion dice |
 	dice := DieRoller roller.
@@ -577,10 +556,7 @@ WorldBuildersHandbook >> generateCompanionFor: star in: solarsystem [
 
 	companion := self generateStarFromNonPrimaryResult: result for: star.
 	companion orbit: ((dice floatBetween: 0.05 and: 0.65) roundTo: 0.01).
-	self
-		assignStarCharacteristicsTo: companion
-		orbiting: star
-		in: solarsystem.
+	companion eccentricity: (self calculateEccentricityFor: companion orbiting: star in: solarsystem ).
 	^ companion
 ]
 
@@ -602,8 +578,8 @@ WorldBuildersHandbook >> generateLesserFor: aStar [
 	stellarType = 'BD'
 		ifTrue: [ ^ self generateNewBrownDwarf ]
 		ifFalse: [
-			^ WBHStar
-				  newWithType: stellarType
+			^ self
+				  newStarWithType: stellarType
 				  subtype: subtype
 				  class: aStar stellarClass ]
 ]
@@ -684,8 +660,10 @@ WorldBuildersHandbook >> generateNewWhiteDwarf [
 		  stellarType: 'D';
 		  mass: mass;
 		  age: age;
+		  colour: 'White';
 		  temperature: (self whiteDwarfTemperatureForMass: mass age: age);
 		  diameter: diameter;
+		  inclination: self calculateInclination;
 		  yourself
 ]
 
@@ -714,12 +692,12 @@ WorldBuildersHandbook >> generatePrimaryStar [
 	| star sc |
 	sc := self primaryStarClassification.
 
-	star := WBHStar new.
-	star
-		spectralClassification: sc;
-		orbit: 0.
+	star := self
+		        newStarWithType: sc spectralType 
+		        subtype: sc subtype
+		        class: sc spectralClass .
 
-	self assignStarCharacteristicsTo: star orbiting: nil in: nil.
+	star orbit: 0.
 
 	^ star
 ]
@@ -762,7 +740,7 @@ WorldBuildersHandbook >> generateSecondaryFor: star in: solarSystem inBand: band
 
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateSecondaryFor: solarSystem inBand: bandRange [
-	" wbh: 29"
+	"wbh: 29"
 
 	| star result table secondary companion |
 	star := solarSystem primary.
@@ -773,16 +751,9 @@ WorldBuildersHandbook >> generateSecondaryFor: solarSystem inBand: bandRange [
 
 	secondary orbit: bandRange random.
 
-	secondary eccentricity: (self
-			 calculateEccentricityFor: secondary
-			 orbiting: star
-			 in: solarSystem).
-
 	self hasCompanion ifTrue: [
 		companion := self generateCompanionFor: secondary in: solarSystem.
 		secondary companion: star ].
-
-	self assignStarCharacteristicsTo: secondary orbiting: star in: solarSystem.
 
 	^ secondary
 ]
@@ -808,7 +779,7 @@ WorldBuildersHandbook >> generateSiblingFor: aStar [
 					s := r + s \\ 10 ] ]
 		ifFalse: [ s := s + r ].
 
-	^ WBHStar newWithType: t subtype: s class: c
+	^ self newStarWithType: t subtype: s class: c
 ]
 
 { #category : 'as yet unclassified' }
@@ -862,8 +833,8 @@ WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateTwinFor: aStar [
 
-	^ WBHStar
-		  newWithType: aStar stellarType
+	^ self
+		  newStarWithType: aStar stellarType
 		  subtype: aStar subtype
 		  class: aStar stellarClass
 ]
@@ -1047,17 +1018,53 @@ WorldBuildersHandbook >> massForType: type subtype: subtype class: class [
 { #category : 'accessing' }
 WorldBuildersHandbook >> minimumAllowableOrbit: aStar [
 
-	^ self
-		  interpolatedLookup: minimumAllowableOrbit
-		  type: aStar stellarType
-		  subtype: aStar subtype
-		  class: aStar stellarClass
+	aStar mao ifNotNil: [ ^ aStar mao ] ifNil: [
+		^ self
+			  interpolatedLookup: minimumAllowableOrbit
+			  type: aStar stellarType
+			  subtype: aStar subtype
+			  class: aStar stellarClass ]
 ]
 
 { #category : 'orbit bands' }
 WorldBuildersHandbook >> nearOrbitBand [
 
 	^ OrbitBand label: #near from: 5.5 to: 11.5
+]
+
+{ #category : 'star generation' }
+WorldBuildersHandbook >> newStarWithType: stellarType subtype: subtype class: stellarClass [
+
+	| star dia temp |
+	star := WBHStar
+		        newWithType: stellarType
+		        subtype: subtype
+		        class: stellarClass.
+
+	dia := self
+		       diameterForType: star stellarType
+		       subtype: star subtype
+		       class: star stellarClass.
+	temp := self
+		        temperatureForType: star stellarType
+		        subtype: star subtype.
+
+	star
+		mass: (self
+				 massForType: star stellarType
+				 subtype: star subtype
+				 class: star stellarClass);
+		colour: (self colourForType: star stellarType);
+		diameter: dia;
+		temperature: temp;
+		age: (self calculateAgeFor: star);
+		luminosity: dia squared * (temp / 5772 raisedTo: 4);
+		orbitPosition: 0 @ 0;
+		inclination: self calculateInclination;
+		mao: (self minimumAllowableOrbit: star);
+		hzco: (self class auToOrbit: star luminosity sqrt).
+
+	^ star
 ]
 
 { #category : 'as yet unclassified' }
@@ -1170,13 +1177,12 @@ WorldBuildersHandbook >> primaryStarClassification [
 ]
 
 { #category : 'as yet unclassified' }
-WorldBuildersHandbook >> spreadFor: aStar worlds: worlds [
+WorldBuildersHandbook >> spreadFor: aStar [
 
 	| baselineNumber |
-	baselineNumber := (aStar baselineNumber) max: 1.
+	baselineNumber := aStar baselineNumber max: 1.
 
-	^ (aStar baselineOrbitNumber)
-	  - (aStar mao) / baselineNumber
+	^ aStar baselineOrbitNumber - aStar mao / baselineNumber
 ]
 
 { #category : 'orbits' }

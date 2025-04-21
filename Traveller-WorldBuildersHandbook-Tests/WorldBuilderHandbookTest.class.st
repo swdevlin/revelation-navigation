@@ -120,8 +120,8 @@ WorldBuilderHandbookTest >> testAllowableOrbitsOneStar [
 
 	| star solarSystem primary orbits wbh expected |
 	wbh := WorldBuildersHandbook new.
-	solarSystem := SolarSystem new.
-	primary := Star newWithType: 'F' subtype: 5 class: 'V'.
+	solarSystem := WBHSolarSystem new.
+	primary := WBHStar newWithType: 'F' subtype: 5 class: 'V'.
 	solarSystem primary: primary.
 	wbh
 		assignStarCharacteristicsTo: primary
@@ -129,16 +129,16 @@ WorldBuilderHandbookTest >> testAllowableOrbitsOneStar [
 		in: solarSystem.
 	wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: 0.03 @ 20;
+		            add: (0.03 to: 20);
 		            yourself.
-	self assert: (primary ruleProperty: #availableOrbits) equals: expected.
+	self assert: (primary availableOrbits) equals: expected.
 	star := wbh generateCompanionFor: primary in: solarSystem.
 	primary companion: star.
 	orbits := wbh assignAvailableOrbits: solarSystem.
 	expected := OrderedCollection new
-		            add: 0.5 + star eccentricity @ 20;
+		            add: ((0.5 + star eccentricity) to: 20);
 		            yourself.
-	self assert: (primary ruleProperty: #availableOrbits) equals: expected
+	self assert: (primary availableOrbits) equals: expected
 ]
 
 { #category : 'tests' }
@@ -148,7 +148,7 @@ WorldBuilderHandbookTest >> testAssignStarOrbitCharacteristics [
 	wbh := WorldBuildersHandbook new.
 	primary := wbh generatePrimaryStar.
 	wbh assignStarOrbitCharacteristicsTo: primary.
-	self deny: (primary ruleProperty: #hzco) equals: nil
+	self deny: (primary hzco) equals: nil
 ]
 
 { #category : 'tests' }
@@ -193,21 +193,21 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 	wbh := WorldBuildersHandbook new.
 	worlds := 9.
 
-	" has mao of 0.05"
-	star := Star new
+	"has mao of 0.05"
+	star := WBHStar new
 		        stellarType: 'A';
 		        subtype: 5;
 		        stellarClass: 'V';
 		        yourself.
 
-	star ruleProperty: #hzco value: 3.
-	star ruleProperty: #baselineNumber value: 4.
+	star hzco: 3.
+	star baselineNumber: 4.
 
 	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
 	self assert: bon equals: 3 + (6 - 7 / 10).
 
 
-	star := Star new
+	star := WBHStar new
 		        stellarType: 'K';
 		        subtype: 5;
 		        stellarClass: 'V';
@@ -221,17 +221,16 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 		queueD: 6 value: 1;
 		queueD: 6 value: 3;
 		queueD: 6 value: 3.
-	star ruleProperty: #hzco value: 1.2.
-	star
-		ruleProperty: #baselineNumber
-		value: (wbh baselineNumberFor: star totalWorlds: worlds).
+	star hzco: 1.2.
+	star baselineNumber:
+		(wbh baselineNumberFor: star totalWorlds: worlds).
 
 	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
 	self assert: bon equals: 0.02 - (-1 / 10) + (4 / 100).
 
 	"Step 3B - baseline number < 1"
 	"minimum orbit >= 1"
-	star := Star new
+	star := WBHStar new
 		        stellarType: 'A';
 		        subtype: 5;
 		        stellarClass: 'II';
@@ -241,13 +240,11 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 		clearQueue;
 		queueD: 6 value: 3;
 		queueD: 6 value: 3.
-	star ruleProperty: #hzco value: 1.2.
-	star ruleProperty: #baselineNumber value: 0.9.
+	star hzco: 1.2.
+	star baselineNumber: 0.9.
 
 	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
-	self
-		assert: bon
-		equals: 1.2 - (star ruleProperty: #baselineNumber) + worlds + 0.4.
+	self assert: bon equals: 1.2 - star baselineNumber + worlds + 0.4.
 
 
 	"Step 3C - baseline number > worlds"
@@ -260,12 +257,12 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 		clearQueue;
 		queueD: 6 value: 3;
 		queueD: 6 value: 3.
-	star ruleProperty: #hzco value: 7.5.
-	star ruleProperty: #baselineNumber value: 6.
+	star hzco: 7.5.
+	star baselineNumber: 6.
 	worlds := 4.
 	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
 	self assert: bon equals: 7.5 - 6 + worlds - 0.2.
-	
+
 
 	"Step 3C - baseline number > worlds"
 	"hzco - baseline + worlds < 1"
@@ -277,11 +274,11 @@ WorldBuilderHandbookTest >> testBaselineOrbitNumber [
 		clearQueue;
 		queueD: 6 value: 3;
 		queueD: 6 value: 3.
-	star ruleProperty: #hzco value: 2.5.
-	star ruleProperty: #baselineNumber value: 6.
+	star hzco: 2.5.
+	star baselineNumber: 6.
 	worlds := 2.
 	bon := wbh baselineOrbitNumberFor: star worlds: worlds.
-	self assert: bon equals: 2.5 - ((6 + worlds - 0.2)/10)
+	self assert: bon equals: 2.5 - (6 + worlds - 0.2 / 10)
 ]
 
 { #category : 'tests' }
@@ -289,31 +286,30 @@ WorldBuilderHandbookTest >> testSpread [
 
 	| wbh star |
 	wbh := WorldBuildersHandbook new.
-	star := Star new.
+	star := WBHStar new.
 	star
-		ruleProperty: #baselineOrbitNumber value: 3;
-		ruleProperty: #mao value: 0.1;
-		ruleProperty: #baselineNumber value: 2.
+		baselineOrbitNumber: 3;
+		mao: 0.1;
+		baselineNumber: 2.
 
-	self assert: (wbh spreadFor: star worlds: 1) equals: 2.9 / 2.
-	
-"baselineNumber less than 1 treated as 1"
+	self assert: (wbh spreadFor: star) equals: 2.9 / 2.
+
+	"baselineNumber less than 1 treated as 1"
 	star
-		ruleProperty: #baselineOrbitNumber value: 3;
-		ruleProperty: #mao value: 0.1;
-		ruleProperty: #baselineNumber value: 0.5.
+		baselineOrbitNumber: 3;
+		mao: 0.1;
+		baselineNumber: 0.5.
 
-	self assert: (wbh spreadFor: star worlds: 1) equals: 2.9.
+	self assert: (wbh spreadFor: star) equals: 2.9.
 
-	
-"outermost orbit cannot exceed 20"
+
+	"outermost orbit cannot exceed 20"
 	star
-		ruleProperty: #baselineOrbitNumber value: 3;
-		ruleProperty: #mao value: 0.1;
-		ruleProperty: #baselineNumber value: 0.5.
+		baselineOrbitNumber: 3;
+		mao: 0.1;
+		baselineNumber: 0.5.
 
-	self assert: (wbh spreadFor: star worlds: 10) equals: 2.9.
-
+	self assert: (wbh spreadFor: star) equals: 2.9
 ]
 
 { #category : 'tests' }

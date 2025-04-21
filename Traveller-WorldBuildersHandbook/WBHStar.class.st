@@ -84,9 +84,9 @@ WBHStar class >> brownDwarfTypes [
 ]
 
 { #category : 'adding' }
-WBHStar >> addAvailableOrbitsFrom: min to: max [
+WBHStar >> addAvailableOrbitsFrom: minOrbit to: maxOrbit [
 
-	availableOrbits add: (min to: max)
+	availableOrbits add: (minOrbit to: maxOrbit)
 ]
 
 { #category : 'adding' }
@@ -97,6 +97,12 @@ WBHStar >> addStellarBody: aStellarBody [
 		aStellarBody orbiting: self.
 		stellarBodies add: aStellarBody ].
 	self gotoNextOrbit
+]
+
+{ #category : 'accessing' }
+WBHStar >> availableOrbits [
+
+	^ availableOrbits
 ]
 
 { #category : 'accessing' }
@@ -121,6 +127,12 @@ WBHStar >> baselineOrbitNumber [
 WBHStar >> baselineOrbitNumber: anObject [
 
 	baselineOrbitNumber := anObject
+]
+
+{ #category : 'as yet unclassified' }
+WBHStar >> clearAvailableOrbits [
+
+	availableOrbits := OrderedCollection new
 ]
 
 { #category : 'as yet unclassified' }
