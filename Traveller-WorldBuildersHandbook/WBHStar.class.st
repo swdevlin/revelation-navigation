@@ -135,6 +135,12 @@ WBHStar >> clearAvailableOrbits [
 	availableOrbits := OrderedCollection new
 ]
 
+{ #category : 'accessing' }
+WBHStar >> firstAvailableOrbit [
+
+	^ availableOrbits first min
+]
+
 { #category : 'as yet unclassified' }
 WBHStar >> gotoNextOrbit [
 
@@ -173,6 +179,12 @@ WBHStar >> initialize [
 
 	super initialize.
 	availableOrbits := OrderedCollection new
+]
+
+{ #category : 'accessing' }
+WBHStar >> lastAvailableOrbit [
+
+	^ availableOrbits last max
 ]
 
 { #category : 'accessing' }

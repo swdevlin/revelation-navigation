@@ -64,6 +64,17 @@ OrbitRange >> min: anObject [
 	min := anObject
 ]
 
+{ #category : 'printing' }
+OrbitRange >> printOn: aStream [
+
+	aStream
+		nextPutAll: 'OrbitRange(';
+		print: self min;
+		nextPutAll: ' .. ';
+		print: self max;
+		nextPut: $)
+]
+
 { #category : 'accessing' }
 OrbitRange >> size [
 

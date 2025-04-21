@@ -281,7 +281,7 @@ WorldBuildersHandbook >> assignStarOrbitCharacteristicsTo: star in: aSolarSystem
 
 	star baselineOrbitNumber: (self baselineOrbitNumberFor: star worlds: worlds).
 
-	star spread: (self spreadFor: star)
+	star spread: (self spreadFor: star worlds: worlds)
 ]
 
 { #category : 'as yet unclassified' }
@@ -1254,12 +1254,19 @@ WorldBuildersHandbook >> smallStarAge [
 ]
 
 { #category : 'as yet unclassified' }
-WorldBuildersHandbook >> spreadFor: aStar [
+WorldBuildersHandbook >> spreadFor: aStar worlds: worlds [
+	"wbh -age: 48"
 
-	| baselineNumber |
+	| baselineNumber spread |
 	baselineNumber := aStar baselineNumber max: 1.
 
-	^ aStar baselineOrbitNumber - aStar mao / baselineNumber
+	spread := aStar baselineOrbitNumber - aStar mao / baselineNumber.
+	worlds > 0 ifTrue: [
+		spread * worlds + aStar firstAvailableOrbit
+		> aStar lastAvailableOrbit ifTrue: [
+			spread := aStar totalAvailableOrbits / (worlds + 1) ] ].
+
+	^ spread
 ]
 
 { #category : 'orbits' }
