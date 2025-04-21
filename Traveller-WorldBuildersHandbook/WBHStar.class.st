@@ -152,13 +152,6 @@ WBHStar >> gotoNextOrbit [
 	(currentBand includes: f + spread)
 		ifTrue: [ currentBand min: f + spread ]
 		ifFalse: [
-			Transcript
-				show: currentBand;
-				show: ' spread: ';
-				show: spread;
-				show: ' range: ';
-				show: currentBand size;
-				cr.
 			availableOrbits removeAt: 1 ]
 ]
 
