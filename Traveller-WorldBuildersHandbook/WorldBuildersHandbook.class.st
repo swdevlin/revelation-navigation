@@ -899,6 +899,7 @@ WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateTwinFor: aStar [
 
+	Error signal: 'need to handle dwarves and post stellar'.
 	^ self
 		  newStarWithType: aStar stellarType
 		  subtype: aStar subtype
