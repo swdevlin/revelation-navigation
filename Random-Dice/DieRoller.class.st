@@ -57,6 +57,13 @@ DieRoller >> initialize [
 	queue := Dictionary new.
 ]
 
+{ #category : 'as yet unclassified' }
+DieRoller >> integerBetween: lowerBound and: higherBound [
+
+	^ rng nextIntegerBetween: lowerBound and: higherBound
+
+]
+
 { #category : 'accessing' }
 DieRoller >> queue [
 
