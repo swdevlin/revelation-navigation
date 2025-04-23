@@ -31,7 +31,8 @@ Class {
 		'temperatures',
 		'diameters',
 		'minimumAllowableOrbit',
-		'luminosityTable'
+		'luminosityTable',
+		'twinGenerators'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -598,6 +599,28 @@ WorldBuildersHandbook >> farOrbitBand [
 ]
 
 { #category : 'star generation' }
+WorldBuildersHandbook >> generateBrownDwarfTwinFor: aStar [
+
+	| dice |
+	dice := DieRoller roller.
+
+	^ WBHStar new
+		  stellarType: aStar type;
+		  subtype: aStar subtype;
+		  mass: aStar mass * (dice floatBetween: 0.95 and: 1.0);
+		  colour: aStar colour;
+		  diameter: aStar diameter * (dice floatBetween: 0.95 and: 1.0);
+		  temperature: aStar temperature;
+		  luminosity: aStar luminosity;
+		  orbitPosition: 0 @ 0;
+		  inclination: self calculateInclination;
+		  age: aStar age;
+		  mao: 0.005;
+		  hzco: aStar hzco;
+		  yourself
+]
+
+{ #category : 'star generation' }
 WorldBuildersHandbook >> generateCompanionFor: star in: solarsystem [
 	"wbh: 29"
 
@@ -712,7 +735,7 @@ WorldBuildersHandbook >> generateNewBrownDwarf [
 WorldBuildersHandbook >> generateNewWhiteDwarf [
 	"WBH: 30, 227"
 
-	| mass age finalAge dice diameter |
+	| mass age finalAge dice diameter temp |
 	dice := DieRoller roller.
 	mass := (dice roll: 2 d: 6) - 1 / 10.0
 	        + ((dice roll: 1 d: 10) / 100.0).
@@ -722,6 +745,7 @@ WorldBuildersHandbook >> generateNewWhiteDwarf [
 
 	finalAge := 10 / (mass raisedTo: 2.5)
 	            * (1 + (1 / (4 + mass) + (1 / (mass raisedTo: 3 * 10)))).
+	temp := self whiteDwarfTemperatureForMass: mass age: age.
 
 	^ WBHStar new
 		  stellarType: 'D';
@@ -729,7 +753,9 @@ WorldBuildersHandbook >> generateNewWhiteDwarf [
 		  age: age;
 		  colour: 'White';
 		  diameter: diameter;
-		  temperature: (self whiteDwarfTemperatureForMass: mass age: age);
+		  temperature: temp;
+		  orbitPosition: 0 @ 0;
+		  luminosity: diameter squared * (temp / 5772 raisedTo: 4);
 		  inclination: self calculateInclination;
 		  mao: 0.001;
 		  yourself
@@ -898,12 +924,34 @@ WorldBuildersHandbook >> generateStarFromNonPrimaryResult: result for: star [
 
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateTwinFor: aStar [
+	"Need generator based on stellar type"
 
-	Error signal: 'need to handle dwarves and post stellar'.
-	^ self
-		  newStarWithType: aStar stellarType
-		  subtype: aStar subtype
-		  class: aStar stellarClass
+	| sel |
+	sel := twinGenerators at: aStar stellarType ifAbsent: [
+		       ^ self
+			         newStarWithType: aStar stellarType
+			         subtype: aStar subtype
+			         class: aStar stellarClass ].
+	^ self perform: sel with: aStar
+]
+
+{ #category : 'star generation' }
+WorldBuildersHandbook >> generateWhiteDwarfTwinFor: aStar [
+| dice |
+	dice := DieRoller roller.
+
+	^ WBHStar new
+		  stellarType: aStar stellarType;
+		  mass: aStar mass * (dice floatBetween: 0.95 and: 1.0);
+		  age: aStar age;
+		  colour: aStar colour;
+		  diameter: aStar diameter * (dice floatBetween: 0.95 and: 1.0);
+		  temperature: aStar temperature;
+		  inclination: self calculateInclination;
+		  luminosity: aStar luminosity;
+		  orbitPosition: 0 @ 0;
+		  mao: aStar mao;
+		  yourself
 ]
 
 { #category : 'testing' }
@@ -939,6 +987,15 @@ WorldBuildersHandbook >> hasSecondary [
 { #category : 'initialization' }
 WorldBuildersHandbook >> initialize [
 
+	super initialize.
+
+	twinGenerators := Dictionary newFrom: {
+			                  ('L' -> #generateBrownDwarfTwinFor:).
+			                  ('T' -> #generateBrownDwarfTwinFor:).
+			                  ('Y' -> #generateBrownDwarfTwinFor:).
+			                  ('BD' -> #generateBrownDwarfTwinFor:).
+			                  ('D' -> #generateWhiteDwarfTwinFor:) }.
+
 	colours := Dictionary newFrom: {
 			           ('O' -> 'Blue').
 			           ('B' -> 'Blue White').
@@ -946,12 +1003,11 @@ WorldBuildersHandbook >> initialize [
 			           ('F' -> 'Yellow White').
 			           ('G' -> 'Yellow').
 			           ('K' -> 'Light Orange').
-			           ('M' -> 'Orange Red') .
-			           ('L' -> 'Deep Dim Red') .
-			           ('T' -> 'Deep Dim Red') .
-			           ('Y' -> 'Deep Dim Red') .
-			           ('D' -> 'White') .
-			}.
+			           ('M' -> 'Orange Red').
+			           ('L' -> 'Deep Dim Red').
+			           ('T' -> 'Deep Dim Red').
+			           ('Y' -> 'Deep Dim Red').
+			           ('D' -> 'White') }.
 
 	classOrder := #( 'Ia' 'Ib' 'II' 'III' 'IV' 'V' 'VI' ).
 
@@ -990,21 +1046,22 @@ WorldBuildersHandbook >> initialize [
 
 	"WBH 19"
 	luminosityTable := #( #( 3400000 3200000 2700000 2400000 nil 2200000
-	                    180 )
-	                 #( 1100000 900000 730000 510000 nil 330000 73 )
-	                 #( 290000 140000 100000 72000 46000 35000 29 )
-	                 #( 160000 28000 8800 1600 1100 550 11 )
-	                 #( 130000 22000 8000 220 140 43 nil )
-	                 #( 120000 20000 7300 90 33 15 nil )
-	                 #( 120000 20000 7000 70 25 8.1 nil )
-	                 #( 120000 20000 6900 39 6 3.5 nil )
-	                 #( 120000 20000 6800 120 10 1.4 0.73 )
-	                 #( 110000 20000 7000 200 14 0.78 0.43 )
-	                 #( 110000 21000 7800 260 23 0.52 0.23 )
-	                 #( 120000 22000 8400 530 nil 0.21 0.083 )
-	                 #( 130000 24000 8800 600 nil 0.082 0.027 )
-	                 #( 100000 26000 8800 720 nil 0.0029 0.00072 )
-	                 #( 90000 19000 7300 1200 nil 0.00029 0.00019 ) ).
+	                         180 )
+	                      #( 1100000 900000 730000 510000 nil 330000
+	                         73 )
+	                      #( 290000 140000 100000 72000 46000 35000 29 )
+	                      #( 160000 28000 8800 1600 1100 550 11 )
+	                      #( 130000 22000 8000 220 140 43 nil )
+	                      #( 120000 20000 7300 90 33 15 nil )
+	                      #( 120000 20000 7000 70 25 8.1 nil )
+	                      #( 120000 20000 6900 39 6 3.5 nil )
+	                      #( 120000 20000 6800 120 10 1.4 0.73 )
+	                      #( 110000 20000 7000 200 14 0.78 0.43 )
+	                      #( 110000 21000 7800 260 23 0.52 0.23 )
+	                      #( 120000 22000 8400 530 nil 0.21 0.083 )
+	                      #( 130000 24000 8800 600 nil 0.082 0.027 )
+	                      #( 100000 26000 8800 720 nil 0.0029 0.00072 )
+	                      #( 90000 19000 7300 1200 nil 0.00029 0.00019 ) ).
 
 	"WBH: page 39"
 	minimumAllowableOrbit := #( #( 0.63 0.60 0.55 0.53 nil 0.5 0.01 )

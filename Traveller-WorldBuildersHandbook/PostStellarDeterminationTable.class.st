@@ -1,3 +1,6 @@
+"
+WBH Page 29
+"
 Class {
 	#name : 'PostStellarDeterminationTable',
 	#superclass : 'RollTable',
