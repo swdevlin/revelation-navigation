@@ -185,6 +185,7 @@ WorldBuildersHandbook >> assignBeltSignificantBodies: aPlanetoidBelt [
 
 { #category : 'gas giant' }
 WorldBuildersHandbook >> assignGasGiantCharacteristics: aGasGiant [
+"wbh 55"
 
 	| r dm star |
 	star := aGasGiant orbiting.
@@ -215,6 +216,7 @@ WorldBuildersHandbook >> assignHotStarTypeTo: sc [
 
 { #category : 'gas giant' }
 WorldBuildersHandbook >> assignLargeGasGiantCharacteristics: aGasGiant [
+"wbh 55"
 
 	aGasGiant code: 'GL'.
 	aGasGiant diameter: 6 + (dice roll: 2 d: 6).
@@ -223,6 +225,7 @@ WorldBuildersHandbook >> assignLargeGasGiantCharacteristics: aGasGiant [
 
 { #category : 'gas giant' }
 WorldBuildersHandbook >> assignMediumGasGiantCharacteristics: aGasGiant [
+"wbh 55"
 
 	aGasGiant code: 'GM'.
 	aGasGiant diameter: 6 + (dice roll: 1 d: 6).
@@ -279,6 +282,7 @@ WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
 
 { #category : 'gas giant' }
 WorldBuildersHandbook >> assignSmallGasGiantCharacteristics: aGasGiant [
+"wbh 55"
 
 	aGasGiant code: 'GS'.
 	aGasGiant diameter: (dice roll: 1 d: 3) + (dice roll: 1 d: 3).
