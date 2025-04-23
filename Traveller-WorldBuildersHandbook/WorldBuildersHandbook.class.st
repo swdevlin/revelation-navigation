@@ -162,8 +162,7 @@ WorldBuildersHandbook >> assignAvailableOrbitsForSingleStarSystem: aSolarSystem 
 { #category : 'planetoid belt' }
 WorldBuildersHandbook >> assignBeltSignificantBodies: aPlanetoidBelt [
 
-	| dice dm hzco bodies |
-	dice := DieRoller roller.
+	| dm hzco bodies |
 
 	hzco := aPlanetoidBelt orbiting hzco.
 	dm := 0.
@@ -233,8 +232,7 @@ WorldBuildersHandbook >> assignMediumGasGiantCharacteristics: aGasGiant [
 { #category : 'planetoid belt' }
 WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
 
-	| star span dice dm composition table total |
-	dice := DieRoller roller.
+	| star span dm composition table total |
 	aPlanetoidBelt sizeCode: 0.
 	star := aPlanetoidBelt orbiting.
 	dm := 0.
@@ -643,9 +641,6 @@ WorldBuildersHandbook >> farOrbitBand [
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateBrownDwarfTwinFor: aStar [
 
-	| dice |
-	dice := DieRoller roller.
-
 	^ WBHStar new
 		  stellarType: aStar type;
 		  subtype: aStar subtype;
@@ -666,11 +661,11 @@ WorldBuildersHandbook >> generateBrownDwarfTwinFor: aStar [
 WorldBuildersHandbook >> generateCompanionFor: star in: solarsystem [
 	"wbh: 29"
 
-	| result companion dice |
-	dice := DieRoller roller.
+	| result companion |
 	result := star isPostStellar
-		         ifTrue: [ PostStellarDeterminationTable new roll ]
-		         ifFalse: [ CompanionStarDeterminationTable new rollFor: star].
+		          ifTrue: [ PostStellarDeterminationTable new roll ]
+		          ifFalse: [
+		          CompanionStarDeterminationTable new rollFor: star ].
 
 	companion := self generateStarFromNonPrimaryResult: result for: star.
 	companion orbit: ((dice floatBetween: 0.05 and: 0.65) roundTo: 0.01).
@@ -713,8 +708,7 @@ WorldBuildersHandbook >> generateLesserFor: aStar [
 WorldBuildersHandbook >> generateNewBrownDwarf [
 	"WBH: 226"
 
-	| mass typeAndSubtypeTuple dice type subtype lower upper temperature diameter luminosity hzco |
-	dice := DieRoller roller.
+	| mass typeAndSubtypeTuple type subtype lower upper temperature diameter luminosity hzco |
 	mass := (dice roll: 1 d: 6) / 100.0
 	        + ((dice roll: 4 d: 6) - 1 / 1000).
 
@@ -777,8 +771,8 @@ WorldBuildersHandbook >> generateNewBrownDwarf [
 WorldBuildersHandbook >> generateNewWhiteDwarf [
 	"WBH: 30, 227"
 
-	| mass age finalAge dice diameter temp |
-	dice := DieRoller roller.
+	| mass age finalAge diameter temp |
+
 	mass := (dice roll: 2 d: 6) - 1 / 10.0
 	        + ((dice roll: 1 d: 10) / 100.0).
 	diameter := 1 / mass * 0.01.
@@ -979,8 +973,6 @@ WorldBuildersHandbook >> generateTwinFor: aStar [
 
 { #category : 'star generation' }
 WorldBuildersHandbook >> generateWhiteDwarfTwinFor: aStar [
-| dice |
-	dice := DieRoller roller.
 
 	^ WBHStar new
 		  stellarType: aStar stellarType;
@@ -1305,8 +1297,7 @@ WorldBuildersHandbook >> numberOfTerrestrialPlanetsFor: solarSystem [
 { #category : 'planetoid belt' }
 WorldBuildersHandbook >> planetoidBeltBulk: aPlanetoidBelt [
 
-	| dice bulk |
-	dice := DieRoller roller.
+	| bulk |
 	bulk := dice roll: 2 d: 2.
 	^ bulk - (aPlanetoidBelt orbiting age / 2 floor)
 	  + (aPlanetoidBelt cPercentage / 10 floor) max: 1
@@ -1315,8 +1306,6 @@ WorldBuildersHandbook >> planetoidBeltBulk: aPlanetoidBelt [
 { #category : 'planetoid belt' }
 WorldBuildersHandbook >> planetoidBeltResourceRating: aPlanetoidBelt [
 
-	| dice |
-	dice := DieRoller roller.
 	^ (dice roll: 2 d: 6) - 7 + aPlanetoidBelt bulk
 	  + (aPlanetoidBelt mPercentage / 10 floor)
 	  + (aPlanetoidBelt cPercentage / 10 floor)
@@ -1350,8 +1339,6 @@ WorldBuildersHandbook >> primaryStarClassification [
 { #category : 'star generation' }
 WorldBuildersHandbook >> smallStarAge [
 
-	| dice |
-	dice := DieRoller roller.
 	^ (dice roll: 1 d: 6) * 2 + (dice roll: 1 d: 3) - 2
 	  + ((dice roll: 1 d: 10) / 10)
 ]
