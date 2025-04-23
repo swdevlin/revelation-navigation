@@ -32,7 +32,8 @@ Class {
 		'diameters',
 		'minimumAllowableOrbit',
 		'luminosityTable',
-		'twinGenerators'
+		'twinGenerators',
+		'dice'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -183,10 +184,27 @@ WorldBuildersHandbook >> assignBeltSignificantBodies: aPlanetoidBelt [
 	aPlanetoidBelt sizeSBodies: (bodies floor max: 0)
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'gas giant' }
 WorldBuildersHandbook >> assignGasGiantCharacteristics: aGasGiant [
 
-	^ nil
+	| r dm star |
+	star := aGasGiant orbiting.
+	dm := 0.
+	star spread < 0.1 ifTrue: [ dm := dm = 1 ].
+
+	dm := dm + (star isBrownDwarf or: [
+		       (star stellarType = 'M' and: [ star stellarClass = 'V' ])
+			       or: [ star stellarClass = 'VI' ] ])
+		      ifTrue: [ -1 ]
+		      ifFalse: [ 0 ].
+
+	r := dm + dice roll: 1 d: 6.
+	r <= 2
+		ifTrue: [ self assignSmallGasGiantCharacteristics: aGasGiant ]
+		ifFalse: [
+			r < 5
+				ifTrue: [ self assignMediumGasGiantCharacteristics: aGasGiant ]
+				ifFalse: [ self assignLargeGasGiantCharacteristics: aGasGiant ] ]
 ]
 
 { #category : 'as yet unclassified' }
@@ -194,6 +212,22 @@ WorldBuildersHandbook >> assignHotStarTypeTo: sc [
 
 	sc spectralType: HotStarTypeTable new roll.
 
+]
+
+{ #category : 'gas giant' }
+WorldBuildersHandbook >> assignLargeGasGiantCharacteristics: aGasGiant [
+
+	aGasGiant code: 'GL'.
+	aGasGiant diameter: 6 + (dice roll: 2 d: 6).
+	aGasGiant mass: (dice roll: 3 d: 6) + 4 * ((dice roll: 1 d: 3) * 50)
+]
+
+{ #category : 'gas giant' }
+WorldBuildersHandbook >> assignMediumGasGiantCharacteristics: aGasGiant [
+
+	aGasGiant code: 'GM'.
+	aGasGiant diameter: 6 + (dice roll: 1 d: 6).
+	aGasGiant mass: 20 * ((dice roll: 3 d: 6) - 1)
 ]
 
 { #category : 'planetoid belt' }
@@ -243,6 +277,14 @@ WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
 	aPlanetoidBelt resourceRating:
 		(self planetoidBeltResourceRating: aPlanetoidBelt).
 	self assignBeltSignificantBodies: aPlanetoidBelt
+]
+
+{ #category : 'gas giant' }
+WorldBuildersHandbook >> assignSmallGasGiantCharacteristics: aGasGiant [
+
+	aGasGiant code: 'GS'.
+	aGasGiant diameter: (dice roll: 1 d: 3) + (dice roll: 1 d: 3).
+	aGasGiant mass: (dice integerBetween: 10 and: 35)
 ]
 
 { #category : 'as yet unclassified' }
@@ -989,6 +1031,8 @@ WorldBuildersHandbook >> initialize [
 
 	super initialize.
 
+	dice := DieRoller new.
+	
 	twinGenerators := Dictionary newFrom: {
 			                  ('L' -> #generateBrownDwarfTwinFor:).
 			                  ('T' -> #generateBrownDwarfTwinFor:).
