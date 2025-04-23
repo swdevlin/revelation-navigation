@@ -328,7 +328,7 @@ WorldBuildersHandbook >> assignStarOrbitCharacteristicsTo: star in: aSolarSystem
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 
-	| stars distribution stellarBodies gasGiants planetoidBelts terrestrialPlanets emptyOrbits dice totalOrbits r |
+	| stars distribution stellarBodies gasGiants planetoidBelts terrestrialPlanets emptyOrbits totalOrbits r |
 	"Determine the number of orbiting bodies"
 	stellarBodies := OrderedCollection new.
 	gasGiants := self numberOfGasGiantsFor: aSolarSystem.
@@ -337,7 +337,7 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 		                  gasGiants: gasGiants.
 	terrestrialPlanets := self numberOfTerrestrialPlanetsFor:
 		                      aSolarSystem.
-	dice := DieRoller roller.
+
 	r := dice roll: 2 d: 6.
 	emptyOrbits := r > 9
 		               ifTrue: [ r - 9 ]
@@ -381,7 +381,7 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 			star addStellarBody: stellarBody value ] ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'terrestrial planet' }
 WorldBuildersHandbook >> assignTerrestrialPlanetCharacteristics: aPlanet [
 
 	^ nil
@@ -434,8 +434,7 @@ WorldBuildersHandbook >> baselineNumberFor: aStar totalWorlds: worlds [
 WorldBuildersHandbook >> baselineOrbitForBaselineBetween1AndWorlds: hzco [
 	"wbh page 45 step 3a"
 
-	| factor dice |
-	dice := DieRoller roller.
+	| factor |
 	factor := hzco >= 1
 		          ifTrue: [ 10 ]
 		          ifFalse: [ 100 ].
@@ -446,8 +445,7 @@ WorldBuildersHandbook >> baselineOrbitForBaselineBetween1AndWorlds: hzco [
 WorldBuildersHandbook >> baselineOrbitForBaselineGreaterThanWorlds: aStar worlds: worlds [
 	"wbh page 46 step 3c"
 
-	| bon hzco baselineNumber dice mao |
-	dice := DieRoller roller.
+	| bon hzco baselineNumber mao |
 
 	mao := aStar mao.
 	hzco := aStar hzco.
@@ -474,11 +472,10 @@ WorldBuildersHandbook >> baselineOrbitForBaselineGreaterThanWorlds: aStar worlds
 WorldBuildersHandbook >> baselineOrbitForBaselineLessThan1: aStar worlds: worlds [
 	"wbh page 45 step 3b"
 
-	| hzco dice baselineNumber mao offset r |
+	| hzco baselineNumber mao offset r |
 	mao := aStar mao.
 
 	hzco := aStar hzco.
-	dice := DieRoller roller.
 	baselineNumber := aStar baselineNumber.
 
 	r := dice roll: 2 d: 6.
@@ -490,11 +487,10 @@ WorldBuildersHandbook >> baselineOrbitForBaselineLessThan1: aStar worlds: worlds
 { #category : 'baseline' }
 WorldBuildersHandbook >> baselineOrbitNumberFor: aStar worlds: worlds [
 
-	| hzco dice baselineNumber mao |
+	| hzco baselineNumber mao |
 	mao := aStar mao.
 
 	hzco := aStar hzco.
-	dice := DieRoller roller.
 	baselineNumber := aStar baselineNumber.
 
 	(baselineNumber between: 1 and: worlds) ifTrue: [
@@ -512,8 +508,7 @@ WorldBuildersHandbook >> baselineOrbitNumberFor: aStar worlds: worlds [
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> calculateAgeFor: star [
 
-	| age msl dice subGiantLifespan giantLifespan |
-	dice := DieRoller roller.
+	| age msl subGiantLifespan giantLifespan |
 
 	msl := 10 / (star mass raisedTo: 2.5).
 
@@ -808,8 +803,7 @@ WorldBuildersHandbook >> generateOtherStar [
 { #category : 'stellar body generation' }
 WorldBuildersHandbook >> generatePlanetoidBeltOrbiting: star [
 
-	| dice span |
-	dice := DieRoller roller.
+	| span |
 	span := star spread * (dice roll: 2 d: 6) / 10.
 	^ WBHPlanetoidBelt new
 		  span: span;
@@ -1165,8 +1159,6 @@ WorldBuildersHandbook >> luminosityForType: type subtype: subtype class: class [
 WorldBuildersHandbook >> massForType: type subtype: subtype class: class [
 	"TODO : handle brown dwarfs and post stellar objects"
 
-	| dice |
-	dice := DieRoller roller.
 	type = 'D'
 		ifTrue: [
 		^ (dice roll: 2 d: 6) - 1 / 10 + ((dice roll: 1 d: 10) / 100) ]
@@ -1257,8 +1249,7 @@ WorldBuildersHandbook >> nonSpecialStarTypeWithRoll: withRoll [
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> numberOfGasGiantsFor: aSolarSystem [
 
-	| r dice |
-	dice := DieRoller roller.
+	| r |
 	r := dice roll: 2 d: 6.
 	r <= 9
 		ifTrue: [
@@ -1271,8 +1262,7 @@ WorldBuildersHandbook >> numberOfGasGiantsFor: aSolarSystem [
 { #category : 'as yet unclassified' }
 WorldBuildersHandbook >> numberOfPlanetoidBeltsFor: aSolarSystem gasGiants: gasGiants [
 
-	| r dice |
-	dice := DieRoller roller.
+	| r |
 	r := dice roll: 2 d: 6.
 	r <= 9
 		ifTrue: [
@@ -1286,8 +1276,7 @@ WorldBuildersHandbook >> numberOfPlanetoidBeltsFor: aSolarSystem gasGiants: gasG
 WorldBuildersHandbook >> numberOfTerrestrialPlanetsFor: solarSystem [
 	"wbh: page 38"
 
-	| c dice |
-	dice := DieRoller roller.
+	| c |
 	c := (dice roll: 2 d: 6) - 2 - solarSystem postStellarCount.
 	c < 3
 		ifTrue: [ ^ (dice roll: 1 d: 3) + 2 ]
