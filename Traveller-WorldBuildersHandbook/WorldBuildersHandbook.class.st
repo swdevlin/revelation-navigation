@@ -189,15 +189,15 @@ WorldBuildersHandbook >> assignGasGiantCharacteristics: aGasGiant [
 	| r dm star |
 	star := aGasGiant orbiting.
 	dm := 0.
-	star spread < 0.1 ifTrue: [ dm := dm = 1 ].
+	star spread < 0.1 ifTrue: [ dm := dm - 1 ].
 
-	dm := dm + (star isBrownDwarf or: [
+	dm := dm + ((star isBrownDwarf or: [
 		       (star stellarType = 'M' and: [ star stellarClass = 'V' ])
 			       or: [ star stellarClass = 'VI' ] ])
 		      ifTrue: [ -1 ]
-		      ifFalse: [ 0 ].
+		      ifFalse: [ 0 ]).
 
-	r := dm + dice roll: 1 d: 6.
+	r := dm + (dice roll: 1 d: 6).
 	r <= 2
 		ifTrue: [ self assignSmallGasGiantCharacteristics: aGasGiant ]
 		ifFalse: [
