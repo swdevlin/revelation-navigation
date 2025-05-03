@@ -236,7 +236,16 @@ WorldBuildersHandbook >> assignMediumGasGiantCharacteristics: aGasGiant [
 WorldBuildersHandbook >> assignPlanetoidBeltCharacteristics: aPlanetoidBelt [
 
 	| star span dm composition table total |
-	aPlanetoidBelt sizeCode: 0.
+	aPlanetoidBelt
+		sizeCode: 0;
+		atmosphereCode: 0;
+		hydrographicsCode: 0;
+		populationCode: 0;
+		governmentCode: 0;
+		lawLevelCode: 0;
+		techLevelCode: 0;
+		starport: 'X'.
+
 	star := aPlanetoidBelt orbiting.
 	dm := 0.
 	(star stellarObject: aPlanetoidBelt hasAdjacent: GasGiant) ifTrue: [
@@ -386,9 +395,97 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 ]
 
 { #category : 'terrestrial planet' }
+WorldBuildersHandbook >> assignTaintFor: atmosphere [
+
+	| roll taint dm |
+	dm := 0.
+
+	taint := TaintTable new rollwithDM: dm
+]
+
+{ #category : 'terrestrial planet' }
+WorldBuildersHandbook >> assignTerrestrialPlanetAtmosphereCharacteristics: aPlanet [
+	"wbh 78"
+
+	| hzcoOffset dm atmo roll |
+	atmo := Atmosphere new.
+	hzcoOffset := aPlanet hzcoOffset.
+
+	"	hzcoOffset < -2.01 ifTrue: [ table := HotAtmosphere2Table ]."
+
+
+	dm := 0.
+	aPlanet gravity < 0.4 ifTrue: [ dm := dm - 2 ].
+	(aPlanet gravity between: 0.4 and: 0.5) ifTrue: [ dm := dm - 1 ].
+
+	roll := (dm + (dice roll: 2 d: 6) - 7 + aPlanet sizeCode max: 0)
+		        min: 17.
+	atmo code: roll.
+	aPlanet atmosphere: atmo
+]
+
+{ #category : 'terrestrial planet' }
 WorldBuildersHandbook >> assignTerrestrialPlanetCharacteristics: aPlanet [
 
-	^ nil
+	self
+		assignTerrestrialPlanetSizeCharacteristics: aPlanet;
+		assignTerrestrialPlanetAtmosphereCharacteristics: aPlanet;
+		assignTerrestrialPlanetHydrographicsCharacteristics: aPlanet
+]
+
+{ #category : 'terrestrial planet' }
+WorldBuildersHandbook >> assignTerrestrialPlanetHydrographicsCharacteristics: aPlanet [
+	"wbh 99"
+
+	| hzcoOffset roll hydro table |
+	hzcoOffset := aPlanet orbit - aPlanet orbiting hzco.
+	aPlanet sizeCode < 1
+		ifTrue: [ roll := 0 ]
+		ifFalse: [
+			roll := (dice roll: 2 d: 6) - 7.
+			aPlanet atmosphereCode <= 1
+				ifTrue: [ roll := roll - 4 ]
+				ifFalse: [
+				aPlanet atmosphereCode >= 10 ifTrue: [ roll := roll - 4 ] ].
+			(hzcoOffset between: -1 and: -2) ifTrue: [ roll := roll - 2 ].
+			hzcoOffset < -2 ifTrue: [ roll := roll - 6 ] ].
+	roll := roll min: 0 max: 10.
+	
+	hydro := Hydrographics new.
+	hydro code: roll.
+	
+	table := SurfaceDistributionTable new.
+	roll := table rollwithDM: -2.
+
+	hydro distribution: roll.
+
+	aPlanet hydrographics: hydro
+]
+
+{ #category : 'terrestrial planet' }
+WorldBuildersHandbook >> assignTerrestrialPlanetSizeCharacteristics: aPlanet [
+	"wbh 69"
+
+	| sizeTable sizeCode range table composition density diameter |
+	sizeTable := Dictionary newFrom: {
+			             (1 -> [ dice roll: 1 d: 6 ]).
+			             (2 -> [ dice roll: 1 d: 6 ]).
+			             (3 -> [ dice roll: 2 d: 6 ]).
+			             (4 -> [ dice roll: 2 d: 6 ]).
+			             (5 -> [ 3 + (dice roll: 2 d: 6) ]).
+			             (6 -> [ 3 + (dice roll: 2 d: 6) ]) }.
+	sizeCode := (sizeTable at: (dice roll: 1 d: 6)) value.
+	aPlanet sizeCode: sizeCode.
+	range := self sizeRanges at: sizeCode.
+	diameter := dice integerBetween: range first and: range stop.
+	aPlanet diameter: diameter.
+	table := TerrestrialCompositionTable new.
+	composition := table rollFor: aPlanet.
+	aPlanet composition: composition key.
+	density := composition value.
+	aPlanet density: density.
+	aPlanet mass: density * (diameter / 12742 raisedTo: 3).
+	aPlanet gravity: density * diameter / 12742
 ]
 
 { #category : 'as yet unclassified' }
@@ -1327,6 +1424,31 @@ WorldBuildersHandbook >> primaryStarClassification [
 			 stellarClass: sc spectralClass).
 
 	^ sc
+]
+
+{ #category : 'terrestrial planet' }
+WorldBuildersHandbook >> sizeRanges [
+	"wbh 70"
+
+	^ Dictionary newFrom: {
+			  (0 -> (0 to: 0)).
+			  ('R' -> (0 to: 0)).
+			  ('S' -> (400 to: 799)).
+			  (1 -> (800 to: 2399)).
+			  (2 -> (2400 to: 3999)).
+			  (3 -> (4000 to: 5599)).
+			  (4 -> (5600 to: 7199)).
+			  (5 -> (7200 to: 8799)).
+			  (6 -> (8800 to: 10399)).
+			  (7 -> (10400 to: 11999)).
+			  (8 -> (12000 to: 13599)).
+			  (9 -> (13600 to: 15199)).
+			  (10 -> (15200 to: 16799)).
+			  (11 -> (16800 to: 18399)).
+			  (12 -> (18400 to: 19999)).
+			  (13 -> (20000 to: 21599)).
+			  (14 -> (21600 to: 23199)).
+			  (15 -> (23200 to: 24799)) }
 ]
 
 { #category : 'star generation' }

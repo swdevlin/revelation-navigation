@@ -54,6 +54,12 @@ WBHPlanetoidBelt >> formatPct: aNumber [
 		  ifFalse: [ s ]
 ]
 
+{ #category : 'as yet unclassified' }
+WBHPlanetoidBelt >> hzcoOffset [
+
+	^ orbit - orbiting hzco
+]
+
 { #category : 'accessing' }
 WBHPlanetoidBelt >> mPercentage [
 

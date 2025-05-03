@@ -7,3 +7,9 @@ Class {
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
 }
+
+{ #category : 'as yet unclassified' }
+WBHGasGiant >> hzcoOffset [
+
+	^ orbit - orbiting hzco
+]
