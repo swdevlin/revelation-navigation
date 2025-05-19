@@ -14,6 +14,12 @@ Class {
 	#package : 'Traveller-WorldBuildersHandbook'
 }
 
+{ #category : 'accessing' }
+EccentricityTable class >> tableName [
+
+	^ 'Eccentricity'
+]
+
 { #category : 'as yet unclassified' }
 EccentricityTable >> computeDM [
 

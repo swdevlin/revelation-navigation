@@ -11,6 +11,12 @@ Class {
 	#package : 'Traveller-WorldBuildersHandbook'
 }
 
+{ #category : 'accessing' }
+GasGiantQuantityTable class >> tableName [
+
+	^ 'Gas Giant Quantity'
+]
+
 { #category : 'roll' }
 GasGiantQuantityTable >> computeDM [
 

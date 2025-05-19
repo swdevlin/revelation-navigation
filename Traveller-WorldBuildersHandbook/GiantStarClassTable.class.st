@@ -8,6 +8,12 @@ Class {
 	#package : 'Traveller-WorldBuildersHandbook'
 }
 
+{ #category : 'accessing' }
+GiantStarClassTable class >> tableName [
+
+	^ 'Giant Star Class'
+]
+
 { #category : 'initialization' }
 GiantStarClassTable >> initialize [
 

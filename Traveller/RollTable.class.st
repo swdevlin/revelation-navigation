@@ -21,6 +21,20 @@ Class {
 	#package : 'Traveller'
 }
 
+{ #category : 'as yet unclassified' }
+RollTable class >> findTable: aName [
+
+	self subclassesDo: [ :aClass |
+		aClass tableName = aName ifTrue: [ ^ aClass ] ].
+	^ self error: 'Table not found'
+]
+
+{ #category : 'accessing' }
+RollTable class >> tableName [
+	self subclassResponsibility.
+
+]
+
 { #category : 'initialization' }
 RollTable >> at: roll put: aValue [
 

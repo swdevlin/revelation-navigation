@@ -12,6 +12,12 @@ Class {
 	#package : 'Traveller-WorldBuildersHandbook'
 }
 
+{ #category : 'accessing' }
+CompanionStarDeterminationTable class >> tableName [
+
+	^ 'Companion Star Determination'
+]
+
 { #category : 'as yet unclassified' }
 CompanionStarDeterminationTable >> computeDM [
 
