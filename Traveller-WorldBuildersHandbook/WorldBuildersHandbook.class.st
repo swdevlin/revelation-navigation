@@ -329,7 +329,7 @@ WorldBuildersHandbook >> assignStarOrbitCharacteristicsTo: star in: aSolarSystem
 	star spread: (self spreadFor: star worlds: worlds)
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'stellar body generation' }
 WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 
 	| stars distribution stellarBodies gasGiants planetoidBelts terrestrialPlanets emptyOrbits totalOrbits r |
@@ -1250,7 +1250,7 @@ WorldBuildersHandbook >> nonSpecialStarTypeWithRoll: withRoll [
 	^ t
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'gas giant' }
 WorldBuildersHandbook >> numberOfGasGiantsFor: aSolarSystem [
 
 	| r |
@@ -1263,7 +1263,7 @@ WorldBuildersHandbook >> numberOfGasGiantsFor: aSolarSystem [
 		ifFalse: [ ^ 0 ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'planetoid belt' }
 WorldBuildersHandbook >> numberOfPlanetoidBeltsFor: aSolarSystem gasGiants: gasGiants [
 
 	| r |
@@ -1276,7 +1276,7 @@ WorldBuildersHandbook >> numberOfPlanetoidBeltsFor: aSolarSystem gasGiants: gasG
 		ifFalse: [ ^ 0 ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'terrestrial planet' }
 WorldBuildersHandbook >> numberOfTerrestrialPlanetsFor: solarSystem [
 	"wbh: page 38"
 
