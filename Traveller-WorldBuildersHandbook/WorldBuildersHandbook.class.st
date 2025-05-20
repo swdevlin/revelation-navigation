@@ -400,7 +400,10 @@ WorldBuildersHandbook >> assignTaintFor: atmosphere [
 	| roll taint dm |
 	dm := 0.
 
-	taint := TaintTable new rollwithDM: dm
+	taint := TaintTable new rollwithDM: dm.
+	taint severity: (TaintSeverityTable new rollFor: atmosphere).
+
+	^ taint
 ]
 
 { #category : 'terrestrial planet' }

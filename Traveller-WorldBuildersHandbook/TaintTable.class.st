@@ -1,3 +1,6 @@
+"
+WBH: Page 82
+"
 Class {
 	#name : 'TaintTable',
 	#superclass : 'RollTable',
