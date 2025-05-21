@@ -6,13 +6,13 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'code',
-		'irritant',
 		'taint',
 		'characteristic',
 		'bar',
 		'gasType',
 		'density',
-		'hazardCode'
+		'hazardCode',
+		'exotic'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -67,6 +67,18 @@ Atmosphere >> density: anObject [
 ]
 
 { #category : 'accessing' }
+Atmosphere >> exotic [
+
+	^ exotic
+]
+
+{ #category : 'accessing' }
+Atmosphere >> exotic: anObject [
+
+	exotic := anObject
+]
+
+{ #category : 'accessing' }
 Atmosphere >> gasType [
 
 	^ gasType
@@ -95,25 +107,11 @@ Atmosphere >> initialize [
 
 	super initialize.
 	code := nil.
-	irritant := false.
 	taint := AtmosphereTaint new.
 	characteristic := ''.
 	bar := 0.
-	gasType := nil.
 	density := 7.
-	hazardCode := nil
-]
-
-{ #category : 'accessing' }
-Atmosphere >> irritant [
-
-	^ irritant
-]
-
-{ #category : 'accessing' }
-Atmosphere >> irritant: anObject [
-
-	irritant := anObject
+	exotic := false
 ]
 
 { #category : 'accessing' }

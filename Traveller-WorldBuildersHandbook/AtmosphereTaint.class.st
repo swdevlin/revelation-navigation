@@ -37,7 +37,7 @@ AtmosphereTaint class >> newWithSubtype: aCode [
 
 	| taint |
 	taint := self new.
-	taint subtype: aCode.
+	taint code: aCode.
 	^ taint
 ]
 
@@ -59,8 +59,7 @@ AtmosphereTaint >> initialize [
 	super initialize.
 	subtype := ''.
 	code := ''.
-	severity := nil.
-	persistence := nil
+
 ]
 
 { #category : 'accessing' }
@@ -90,5 +89,5 @@ AtmosphereTaint >> severity: anObject [
 { #category : 'accessing' }
 AtmosphereTaint >> subtype [
 
-	^ subtype
+	^ self class descriptionForSubtype: self code
 ]

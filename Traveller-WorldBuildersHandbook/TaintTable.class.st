@@ -25,3 +25,12 @@ TaintTable >> initialize [
 			         (11 -> [ AtmosphereTaint newWithSubtype: 'R' ]).
 			         (12 -> [ AtmosphereTaint newWithSubtype: 'H' ]) }
 ]
+
+{ #category : 'roll' }
+TaintTable >> rollForAtmosphere: atmo [
+
+	| dm |
+	dm := atmo code = 4 ifTrue: [ -2 ].
+	dm := atmo code = 4 ifTrue: [ 2 ].
+	^ self rollwithDM: dm
+]

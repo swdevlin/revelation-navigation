@@ -397,13 +397,15 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 { #category : 'terrestrial planet' }
 WorldBuildersHandbook >> assignTaintFor: atmosphere [
 
-	| roll taint dm |
-	dm := 0.
-
-	taint := TaintTable new rollwithDM: dm.
+	| taint |
+	taint := TaintTable new rollForAtmosphere: atmosphere.
 	taint severity: (TaintSeverityTable new rollFor: atmosphere).
+	taint persistence: (TaintPersistenceTable new
+			 rollForSubtype: taint code
+			 severity: taint severity
+			 atmosphere: atmosphere).
 
-	^ taint
+	atmosphere taint: taint
 ]
 
 { #category : 'terrestrial planet' }
@@ -424,6 +426,8 @@ WorldBuildersHandbook >> assignTerrestrialPlanetAtmosphereCharacteristics: aPlan
 	roll := (dm + (dice roll: 2 d: 6) - 7 + aPlanet sizeCode max: 0)
 		        min: 17.
 	atmo code: roll.
+	(#( 2 4 7 9 12 ) includes: roll) ifTrue: [ self assignTaintFor: atmo ].
+
 	aPlanet atmosphere: atmo
 ]
 
