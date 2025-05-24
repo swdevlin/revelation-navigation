@@ -14,7 +14,7 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
-HydrographicsGenerator >> assignHydrophere: aPlanet [
+HydrographicsGenerator >> assignHydrosphere: aPlanet [
 
 	aPlanet size < 2
 		ifTrue: [
@@ -48,7 +48,7 @@ HydrographicsGenerator >> assignLiquid: aPlanet [
 	(t between: 274.14 and: 373.15)
 		ifTrue: [ aPlanet hydrographics liquid: 'Water' ]
 		ifFalse: [
-		aPlanet hydrographics liquid: (ExoticLiquid randomLiquidAt: t) ]
+		aPlanet hydrographics liquid: (ExoticLiquid randomLiquidAt: t) name ]
 ]
 
 { #category : 'as yet unclassified' }

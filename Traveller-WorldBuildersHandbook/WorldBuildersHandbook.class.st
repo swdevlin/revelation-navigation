@@ -407,35 +407,6 @@ WorldBuildersHandbook >> assignTerrestrialPlanetCharacteristics: aPlanet [
 ]
 
 { #category : 'terrestrial planet' }
-WorldBuildersHandbook >> assignTerrestrialPlanetHydrographicsCharacteristics: aPlanet [
-	"wbh 99"
-
-	| hzcoOffset roll hydro table |
-	hzcoOffset := aPlanet orbit - aPlanet orbiting hzco.
-	aPlanet sizeCode < 1
-		ifTrue: [ roll := 0 ]
-		ifFalse: [
-			roll := (dice roll: 2 d: 6) - 7.
-			aPlanet atmosphereCode <= 1
-				ifTrue: [ roll := roll - 4 ]
-				ifFalse: [
-				aPlanet atmosphereCode >= 10 ifTrue: [ roll := roll - 4 ] ].
-			(hzcoOffset between: -1 and: -2) ifTrue: [ roll := roll - 2 ].
-			hzcoOffset < -2 ifTrue: [ roll := roll - 6 ] ].
-	roll := roll min: 0 max: 10.
-	
-	hydro := Hydrographics new.
-	hydro code: roll.
-	
-	table := SurfaceDistributionTable new.
-	roll := table rollwithDM: -2.
-
-	hydro distribution: roll.
-
-	aPlanet hydrographics: hydro
-]
-
-{ #category : 'terrestrial planet' }
 WorldBuildersHandbook >> assignTerrestrialPlanetSizeCharacteristics: aPlanet [
 	"wbh 69"
 
