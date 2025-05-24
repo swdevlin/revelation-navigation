@@ -397,10 +397,13 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 { #category : 'terrestrial planet' }
 WorldBuildersHandbook >> assignTerrestrialPlanetCharacteristics: aPlanet [
 
-	self
-		assignTerrestrialPlanetSizeCharacteristics: aPlanet;
-		assignTerrestrialPlanetAtmosphereCharacteristics: aPlanet;
-		assignTerrestrialPlanetHydrographicsCharacteristics: aPlanet
+	| generator |
+	self assignTerrestrialPlanetSizeCharacteristics: aPlanet.
+	generator := AtmosphereGenerator new.
+	generator assignAtmosphere: aPlanet.
+
+	generator := HydrographicsGenerator new.
+	generator assignHydrosphere: aPlanet
 ]
 
 { #category : 'terrestrial planet' }

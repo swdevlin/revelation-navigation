@@ -6,7 +6,9 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'code',
-		'distribution'
+		'distribution',
+		'percent',
+		'liquid'
 	],
 	#category : 'Traveller-WorldBuildersHandbook',
 	#package : 'Traveller-WorldBuildersHandbook'
@@ -34,4 +36,28 @@ Hydrographics >> distribution [
 Hydrographics >> distribution: anObject [
 
 	distribution := anObject
+]
+
+{ #category : 'accessing' }
+Hydrographics >> liquid [
+
+	^ liquid
+]
+
+{ #category : 'accessing' }
+Hydrographics >> liquid: anObject [
+
+	liquid := anObject
+]
+
+{ #category : 'accessing' }
+Hydrographics >> percent [
+
+	^ percent
+]
+
+{ #category : 'accessing' }
+Hydrographics >> percent: anObject [
+
+	percent := anObject
 ]
