@@ -27,11 +27,12 @@ TaintSeverityTable >> initialize [
 { #category : 'roll' }
 TaintSeverityTable >> rollFor: atmosphere [
 
-	| dm |
+	| dm subtype |
+	subtype := atmosphere taint subtype.
 	dm := atmosphere code = 12
 		      ifTrue: [ 6 ]
 		      ifFalse: [
-			      (#( 'L' 'H' ) includes: atmosphere taint subtype)
+			      ((subtype includes: $L) or: [ subtype includes: $H ])
 				      ifTrue: [ 4 ]
 				      ifFalse: [ 0 ] ].
 	^ self rollwithDM: dm

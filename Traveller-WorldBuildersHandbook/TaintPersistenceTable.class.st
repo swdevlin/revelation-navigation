@@ -24,13 +24,15 @@ TaintPersistenceTable >> initialize [
 ]
 
 { #category : 'as yet unclassified' }
-TaintPersistenceTable >> rollForSubtype: subtype severity: severity atmosphere: atmosphere [
+TaintPersistenceTable >> rollFor: atmosphere [
 
-	| dm |
+	| dm subtype severity |
+	subtype := atmosphere subtype.
+	severity := atmosphere severity.
 	dm := atmosphere code = 12
 		      ifTrue: [ 6 ]
 		      ifFalse: [ 0 ].
-	(#( 'L' #'.' 'H' ) includes: subtype) ifTrue: [
+	((subtype includes: $L) or: [ subtype includes: $H ]) ifTrue: [
 		dm := severity >= 8
 			      ifTrue: [ dm + 6 ]
 			      ifFalse: [ dm + 4 ] ].

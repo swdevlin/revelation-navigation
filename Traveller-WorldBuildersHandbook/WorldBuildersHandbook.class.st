@@ -395,43 +395,6 @@ WorldBuildersHandbook >> assignStellarObjects: aSolarSystem [
 ]
 
 { #category : 'terrestrial planet' }
-WorldBuildersHandbook >> assignTaintFor: atmosphere [
-
-	| taint |
-	taint := TaintTable new rollForAtmosphere: atmosphere.
-	taint severity: (TaintSeverityTable new rollFor: atmosphere).
-	taint persistence: (TaintPersistenceTable new
-			 rollForSubtype: taint code
-			 severity: taint severity
-			 atmosphere: atmosphere).
-
-	atmosphere taint: taint
-]
-
-{ #category : 'terrestrial planet' }
-WorldBuildersHandbook >> assignTerrestrialPlanetAtmosphereCharacteristics: aPlanet [
-	"wbh 78"
-
-	| hzcoOffset dm atmo roll |
-	atmo := Atmosphere new.
-	hzcoOffset := aPlanet hzcoOffset.
-
-	"	hzcoOffset < -2.01 ifTrue: [ table := HotAtmosphere2Table ]."
-
-
-	dm := 0.
-	aPlanet gravity < 0.4 ifTrue: [ dm := dm - 2 ].
-	(aPlanet gravity between: 0.4 and: 0.5) ifTrue: [ dm := dm - 1 ].
-
-	roll := (dm + (dice roll: 2 d: 6) - 7 + aPlanet sizeCode max: 0)
-		        min: 17.
-	atmo code: roll.
-	(#( 2 4 7 9 12 ) includes: roll) ifTrue: [ self assignTaintFor: atmo ].
-
-	aPlanet atmosphere: atmo
-]
-
-{ #category : 'terrestrial planet' }
 WorldBuildersHandbook >> assignTerrestrialPlanetCharacteristics: aPlanet [
 
 	self
