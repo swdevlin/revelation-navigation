@@ -439,7 +439,7 @@ WorldBuildersHandbook >> assignTerrestrialPlanetHydrographicsCharacteristics: aP
 WorldBuildersHandbook >> assignTerrestrialPlanetSizeCharacteristics: aPlanet [
 	"wbh 69"
 
-	| sizeTable sizeCode range table composition density diameter |
+	| sizeTable sizeCode range table composition density diameter rotationMultiplier |
 	sizeTable := Dictionary newFrom: {
 			             (1 -> [ dice roll: 1 d: 6 ]).
 			             (2 -> [ dice roll: 1 d: 6 ]).
@@ -458,7 +458,12 @@ WorldBuildersHandbook >> assignTerrestrialPlanetSizeCharacteristics: aPlanet [
 	density := composition value.
 	aPlanet density: density.
 	aPlanet mass: density * (diameter / 12742 raisedTo: 3).
-	aPlanet gravity: density * diameter / 12742
+	aPlanet gravity: density * diameter / 12742.
+	rotationMultiplier := sizeCode < 1
+		                      ifTrue: [ 2 ]
+		                      ifFalse: [ 4 ].
+	aPlanet rotation:
+		(dice roll: 2 d: 6) * rotationMultiplier + 2 + (dice roll: 1 d: 6)
 ]
 
 { #category : 'as yet unclassified' }
